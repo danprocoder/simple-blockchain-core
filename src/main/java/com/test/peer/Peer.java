@@ -30,4 +30,6 @@ public abstract class Peer extends Thread {
         this.dos.write(payload.getBytes());
         this.dos.flush();
     }
+
+    protected abstract void fetchMessages();
 }

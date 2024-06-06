@@ -10,4 +10,24 @@ public class MinerPeer extends Peer {
     public MinerPeer(Socket socket, ConnectionHeader header, ServerListener listener) throws IOException {
         super(socket, header, listener);
     }
+
+    @Override()
+    public void run() {
+        this.fetchMessages();
+    }
+
+    @Override()
+    protected void fetchMessages() {
+        System.out.println("Waiting for messages from miner");
+        try {
+            byte[] buffer = new byte[1024];
+            int bytesRead = 0;
+            while ((bytesRead = this.socket.getInputStream().read(buffer)) != -1) {
+                System.out.println("Message From miner:");
+                System.out.println(new String(buffer, 0, bytesRead));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

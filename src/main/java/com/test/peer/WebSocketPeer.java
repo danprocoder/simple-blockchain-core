@@ -26,7 +26,7 @@ public class WebSocketPeer extends Peer {
     public void run() {
         this.initiateHandshake();
 
-        this.readWebSocketFrames();
+        this.fetchMessages();
     }
 
     private void initiateHandshake() {
@@ -51,7 +51,8 @@ public class WebSocketPeer extends Peer {
         }
     }
 
-    private void readWebSocketFrames() {
+    @Override()
+    protected void fetchMessages() {
         try {
             byte[] buffer = new byte[1024];
             int bytesRead = 0;
