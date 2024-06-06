@@ -13,8 +13,6 @@ public class ConnectionHeader {
     }
 
     public String getClientType() {
-        System.out.println(this.firstLine);
-
         if (this.firstLine.startsWith("MINER 1.0")) {
             return "miner";
         } else if (this.firstLine.startsWith("GET / HTTP/1.1")) {
