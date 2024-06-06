@@ -6,7 +6,6 @@ import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.Base64;
 
-import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import com.test.dto.Transaction;
 import com.test.node.ConnectionHeader;
@@ -26,7 +25,7 @@ public class WebSocketPeer extends Peer {
     public void run() {
         this.initiateHandshake();
 
-        this.fetchMessages();
+        super.run();
     }
 
     private void initiateHandshake() {
@@ -52,33 +51,20 @@ public class WebSocketPeer extends Peer {
     }
 
     @Override()
-    protected void fetchMessages() {
-        try {
-            byte[] buffer = new byte[1024];
-            int bytesRead = 0;
-            while ((bytesRead = this.socket.getInputStream().read(buffer)) != -1) {
-                String message = this.parseWebSocketFrame(buffer, bytesRead);
-
-                Gson gson = new Gson();
-                Payload payload = gson.fromJson(message, Payload.class);
-                
-                LinkedTreeMap<String, Object> data = (LinkedTreeMap<String, Object>) payload.data;
-                if (payload.action.equals("transaction")) {
-                    this.listener.onTransactionReceived(
-                        new Transaction(
-                            (String) data.get("from"),
-                            (String) data.get("to"),
-                            (Double) data.get("amount"),
-                            (Double) data.get("timestamp"),
-                            (String) data.get("signature")
-                        ),
-                        this,
-                        message
-                    );
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+    public void onMessageFetched(Payload payload, String json) {
+        LinkedTreeMap<String, Object> data = (LinkedTreeMap<String, Object>) payload.data;
+        if (payload.action.equals("transaction")) {
+            this.listener.onTransactionReceived(
+                new Transaction(
+                    (String) data.get("from"),
+                    (String) data.get("to"),
+                    (Double) data.get("amount"),
+                    (Double) data.get("timestamp"),
+                    (String) data.get("signature")
+                ),
+                this,
+                json
+            );
         }
     }
 

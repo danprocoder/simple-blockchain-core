@@ -15,6 +15,8 @@ public class ConnectionHeader {
     public String getClientType() {
         if (this.firstLine.startsWith("MINER 1.0")) {
             return "miner";
+        } else if (this.firstLine.startsWith("NODE 1.0")) {
+            return "node";
         } else if (this.firstLine.startsWith("GET / HTTP/1.1")) {
             return "web-wallet";
         }

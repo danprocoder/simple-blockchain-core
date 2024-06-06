@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
 
+import com.google.gson.Gson;
 import com.test.node.ConnectionHeader;
 import com.test.node.ServerListener;
 
@@ -26,10 +27,30 @@ public abstract class Peer extends Thread {
         dos = new DataOutputStream(socket.getOutputStream());
     }
 
+    @Override()
+    public void run() {
+        this.fetchMessages();
+    }
+
     public void sendData(String payload) throws IOException {
         this.dos.write(payload.getBytes());
         this.dos.flush();
     }
 
-    protected abstract void fetchMessages();
+    protected void fetchMessages() {
+        try {
+            byte[] buffer = new byte[1024];
+            int bytesRead = 0;
+            while ((bytesRead = this.socket.getInputStream().read(buffer)) != -1) {
+                String message = new String(buffer, 0, bytesRead);
+
+                Gson gson = new Gson();
+                this.onMessageFetched(gson.fromJson(message, Payload.class), message);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    protected abstract void onMessageFetched(Payload payload, String json);
 }
