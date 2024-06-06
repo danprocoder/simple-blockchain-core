@@ -18,7 +18,6 @@ public class MinerPeer extends Peer {
 
     @Override()
     protected void fetchMessages() {
-        System.out.println("Waiting for messages from miner");
         try {
             byte[] buffer = new byte[1024];
             int bytesRead = 0;

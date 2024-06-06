@@ -38,10 +38,11 @@ public class Server implements ServerListener {
 
         while (true) {
             Socket client = this.socketServer.accept();
-            System.out.println("New peer connected (" + client.getRemoteSocketAddress() + ")");
 
             // Handshake to workout if it's a wallet or miner.
             ConnectionHeader header = this.getHeaders(client);
+
+            System.out.println(header.getClientType() + " connected");
 
             if (header.getClientType().equals("web-wallet")) {
                 Peer webWallet = new WebSocketPeer(client, header, this);
