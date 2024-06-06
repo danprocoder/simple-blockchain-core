@@ -9,7 +9,7 @@ public class Main {
         try {
             Server server = Server.getInstance();
 
-            server.start(12345);
+            server.start(Integer.parseInt(args[0]));
         } catch (IOException e) {
             System.out.println(e.toString());
         }

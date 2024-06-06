@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.test.blockchain.Blockchain;
 import com.test.dto.Block;
 import com.test.dto.Transaction;
 import com.test.peer.MinerPeer;
@@ -99,7 +100,18 @@ public class Server implements ServerListener {
     }
 
     @Override()
-    public void onBlockReceived(Block block, Peer peer) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public void onBlockReceived(Block block, Peer peer, String rawMessage) {
+        if (!block.computeHash().equals(block.getHash())) {
+            return;
+        }
+
+        Blockchain blockchain = Blockchain.getInstance();
+        Block lastBlock = blockchain.getLastBlock();
+        if (lastBlock == null || lastBlock.getHash().equals(block.getPreviousHash())) {
+            blockchain.addBlock(block);
+        } else {
+            // Add to orphan block to be rearranged later.
+            blockchain.addOrphanBlock(block);
+        }
     }
 }

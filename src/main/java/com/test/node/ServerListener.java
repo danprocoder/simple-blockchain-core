@@ -7,5 +7,5 @@ import com.test.peer.Peer;
 public interface ServerListener {
     public void onTransactionReceived(Transaction trx, Peer peer, String rawMessage);
 
-    public void onBlockReceived(Block block, Peer peer);
+    public void onBlockReceived(Block block, Peer peer, String message);
 }
