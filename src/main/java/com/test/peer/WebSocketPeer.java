@@ -71,7 +71,8 @@ public class WebSocketPeer extends Peer {
                             (Double) data.get("timestamp"),
                             (String) data.get("signature")
                         ),
-                        this
+                        this,
+                        message
                     );
                 }
             }

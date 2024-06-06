@@ -73,7 +73,7 @@ public class Server implements ServerListener {
     }
 
     @Override()
-    public void onTransactionReceived(Transaction trx, Peer peer) {
+    public void onTransactionReceived(Transaction trx, Peer peer, String rawMessage) {
         // try {
         //     System.out.println("verifying trx");
         //     if (!trx.verifySignature()) {
@@ -88,7 +88,7 @@ public class Server implements ServerListener {
 
         for (Peer miner: this.miners) {
             try {
-                miner.sendData(trx.toJson());
+                miner.sendData(rawMessage);
             } catch (IOException e) {
                 System.out.println("Failed to send transaction to miner.");
             }

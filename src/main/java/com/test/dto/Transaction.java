@@ -25,14 +25,6 @@ public class Transaction {
         this.signature = signature;
     }
 
-    public String toJson() {
-        return "{\"from\": \"" + this.from + "\"," +
-                "\"to\": \"" + this.to + "\"," +
-                "\"amount\": \"" + this.amount + "\"," +
-                "\"timestamp\": \"" + this.timestamp + "\"," +
-                "\"signature\": \"" + this.signature + "\"}";
-    }
-
     public boolean verifySignature() {
         try {
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
