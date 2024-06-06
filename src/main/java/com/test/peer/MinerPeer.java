@@ -23,7 +23,6 @@ public class MinerPeer extends Peer {
             byte[] buffer = new byte[1024];
             int bytesRead = 0;
             while ((bytesRead = this.socket.getInputStream().read(buffer)) != -1) {
-                System.out.println("Message From miner:");
                 System.out.println(new String(buffer, 0, bytesRead));
             }
         } catch (Exception e) {

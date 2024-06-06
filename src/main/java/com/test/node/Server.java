@@ -74,6 +74,7 @@ public class Server implements ServerListener {
 
     @Override()
     public void onTransactionReceived(Transaction trx, Peer peer, String rawMessage) {
+        System.out.println("Transaction request received from wallet: " + trx.toString());
         // try {
         //     System.out.println("verifying trx");
         //     if (!trx.verifySignature()) {
@@ -86,6 +87,7 @@ public class Server implements ServerListener {
         //     return;
         // }
 
+        System.out.println("Verified successfully. Broadcasting to miners.");
         for (Peer miner: this.miners) {
             try {
                 miner.sendData(rawMessage);
