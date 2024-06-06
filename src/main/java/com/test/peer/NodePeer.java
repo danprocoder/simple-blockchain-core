@@ -12,7 +12,5 @@ public class NodePeer extends Peer {
     }
 
     @Override()
-    public void onMessageFetched(Payload payload, String json) {
-
-    }
+    protected void onMessageFetched(byte[] bytes, int length) {}
 }

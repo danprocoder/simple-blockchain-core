@@ -13,11 +13,11 @@ public class Transaction {
 
     private Double amount;
 
-    private Double timestamp;
+    private long timestamp;
 
     private String signature;
 
-    public Transaction(String from, String to, Double amount, Double timestamp, String signature) {
+    public Transaction(String from, String to, Double amount, long timestamp, String signature) {
         this.from = from;
         this.to = to;
         this.amount = amount;
@@ -37,22 +37,9 @@ public class Transaction {
     
             Signature verifier = Signature.getInstance("SHA256withRSA");
             verifier.initVerify(publicKey);
-            System.out.println(
-                "Trx{from=" + this.from +
-                ", to=" + this.to +
-                ", amount=" + this.amount +
-                ", timestamp=" + this.timestamp +
-                "}"
-            );
-            verifier.update(
-                (
-                    "Trx{from=" + this.from +
-                    ", to=" + this.to +
-                    ", amount=" + this.amount +
-                    ", timestamp=" + this.timestamp +
-                    "}"
-                ).getBytes()
-            );
+
+            String data = "Trx{from=" + this.from + ", to=" + this.to + ", amount=" + this.amount + ", timestamp=" + this.timestamp + "}";
+            verifier.update(data.getBytes());
 
             return verifier.verify(this.signature.getBytes());
         } catch (Exception e) {

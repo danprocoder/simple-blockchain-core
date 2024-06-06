@@ -6,6 +6,7 @@ import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.Base64;
 
+import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import com.test.dto.Transaction;
 import com.test.node.ConnectionHeader;
@@ -51,20 +52,20 @@ public class WebSocketPeer extends Peer {
     }
 
     @Override()
-    public void onMessageFetched(Payload payload, String json) {
+    protected void onMessageFetched(byte[] bytes, int length) {
+        String message = this.parseWebSocketFrame(bytes, length);
+        Payload payload = new Gson().fromJson(message, Payload.class);
+
         LinkedTreeMap<String, Object> data = (LinkedTreeMap<String, Object>) payload.data;
         if (payload.action.equals("transaction")) {
-            this.listener.onTransactionReceived(
-                new Transaction(
-                    (String) data.get("from"),
-                    (String) data.get("to"),
-                    (Double) data.get("amount"),
-                    (Double) data.get("timestamp"),
-                    (String) data.get("signature")
-                ),
-                this,
-                json
+            Transaction trx = new Transaction(
+                (String) data.get("from"),
+                (String) data.get("to"),
+                (Double) data.get("amount"),
+                ((Double) data.get("timestamp")).longValue(),
+                (String) data.get("signature")
             );
+            this.listener.onTransactionReceived(trx, this, message);
         }
     }
 

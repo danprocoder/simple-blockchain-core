@@ -5,8 +5,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.util.Arrays;
 
-import com.google.gson.Gson;
 import com.test.node.ConnectionHeader;
 import com.test.node.ServerListener;
 
@@ -42,15 +42,12 @@ public abstract class Peer extends Thread {
             byte[] buffer = new byte[1024];
             int bytesRead = 0;
             while ((bytesRead = this.socket.getInputStream().read(buffer)) != -1) {
-                String message = new String(buffer, 0, bytesRead);
-
-                Gson gson = new Gson();
-                this.onMessageFetched(gson.fromJson(message, Payload.class), message);
+                this.onMessageFetched(Arrays.copyOfRange(buffer, 0, bytesRead), bytesRead);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    protected abstract void onMessageFetched(Payload payload, String json);
+    protected abstract void onMessageFetched(byte[] bytes, int length);
 }
