@@ -8,7 +8,9 @@ import java.util.Base64;
 
 import com.test.network.ConnectionHeader;
 
-
+/**
+ * Class representing connections made by clients via WebSocket (e.g Web Wallets).
+ */
 public class WebSocketPeer extends Peer {
     public WebSocketPeer(Socket socket, ConnectionHeader header) throws IOException {
         super(socket, header);

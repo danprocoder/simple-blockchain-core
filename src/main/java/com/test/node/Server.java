@@ -8,6 +8,11 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.test.controllers.Controller;
+import com.test.controllers.AddBlockController;
+import com.test.controllers.GetAddressBalanceController;
+import com.test.controllers.GetBlockChainController;
+import com.test.controllers.SendTransactionController;
 import com.test.network.ConnectionHeader;
 import com.test.network.ConnectionManager;
 import com.test.peer.Peer;
@@ -37,6 +42,7 @@ public class Server {
             try {
                 ConnectionHeader header = this.getHeaders(client);
                 Peer peer = PeerFactory.getPeer(client, header);
+                peer.setRoutes(this.getRoutes(peer));
                 peer.initiateHandshake();
 
                 peer.start();
@@ -47,6 +53,17 @@ public class Server {
                 e.printStackTrace();
             }
         }
+    }
+
+    private HashMap<String, Controller> getRoutes(Peer peer) {
+        HashMap<String, Controller> controllerMap = new HashMap<String, Controller>();
+
+        controllerMap.put("block", new AddBlockController(peer));
+        controllerMap.put("transaction", new SendTransactionController(peer));
+        controllerMap.put("get-blockchain", new GetBlockChainController(peer));
+        controllerMap.put("get-balance-for-address", new GetAddressBalanceController(peer));
+
+        return controllerMap;
     }
 
     private ConnectionHeader getHeaders(Socket client) throws IOException {

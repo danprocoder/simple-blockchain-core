@@ -9,11 +9,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 import com.google.gson.Gson;
-import com.test.controllers.AddBlockController;
 import com.test.controllers.Controller;
-import com.test.controllers.GetAddressBalanceController;
-import com.test.controllers.GetBlockChainController;
-import com.test.controllers.SendTransactionController;
 import com.test.network.ConnectionHeader;
 import com.test.network.Request;
 import com.test.network.Response;
@@ -25,7 +21,7 @@ public abstract class Peer extends Thread {
     protected BufferedReader reader;
     protected DataOutputStream dos;
 
-    HashMap<String, Controller> controllerMap = new HashMap<String, Controller>();
+    HashMap<String, Controller> controllerMap;
 
     public Peer(Socket socket, ConnectionHeader header) throws IOException {
         this.socket = socket;
@@ -33,13 +29,6 @@ public abstract class Peer extends Thread {
 
         reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         dos = new DataOutputStream(socket.getOutputStream());
-
-        // Assign actions to controllers here.
-        // TODO: This might need to be refactored and moved somewhere.
-        controllerMap.put("block", new AddBlockController(this));
-        controllerMap.put("transaction", new SendTransactionController(this));
-        controllerMap.put("get-blockchain", new GetBlockChainController(this));
-        controllerMap.put("get-balance-for-address", new GetAddressBalanceController(this));
     }
 
     @Override()
@@ -48,6 +37,10 @@ public abstract class Peer extends Thread {
     }
 
     public abstract void initiateHandshake() throws Exception;
+
+    public void setRoutes(HashMap<String, Controller> routes) {
+        this.controllerMap = routes;
+    }
 
     public void sendData(String payload) throws IOException {
         this.dos.write(payload.getBytes());
