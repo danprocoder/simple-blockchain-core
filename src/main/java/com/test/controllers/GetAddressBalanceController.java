@@ -7,7 +7,7 @@ import com.test.blockchain.Blockchain;
 import com.test.dto.Transaction;
 import com.test.network.Request;
 import com.test.network.Response;
-import com.test.peer.Peer;
+import com.test.network.peer.Peer;
 
 public class GetAddressBalanceController extends Controller {
     public GetAddressBalanceController(Peer peer) {
@@ -15,7 +15,7 @@ public class GetAddressBalanceController extends Controller {
     }
 
     @Override()
-    public void onRequest(Request request) {
+    public Response onRequest(Request request) {
         LinkedTreeMap<String, Object> data = request.getData();
 
         String address = (String) data.get("address");
@@ -32,8 +32,9 @@ public class GetAddressBalanceController extends Controller {
             }
         }
 
-        Response response = new Response("get-balance");
+        Response response = new Response("get-balance-for-address", "Number");
+        response.addHeader("Address", address);
         response.setBody(Double.toString(balance));
-        this.origin.sendData(response);
+        return response;
     }
 }

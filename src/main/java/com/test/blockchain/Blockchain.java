@@ -1,9 +1,14 @@
 package com.test.blockchain;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.test.core.Coin;
 import com.test.dto.Block;
 import com.test.dto.Transaction;
 
@@ -19,6 +24,23 @@ public class Blockchain {
         }
 
         return instance;
+    }
+
+    /**
+     * Load blockchain record from file on machine. If the file does not exists, we create one
+     * with the genesis block.
+     */
+    public void initialize() {
+        if (!instance.readFromFile()) {
+            try {
+                Block genesis = instance.getGenesisBlock();
+                instance.chain.add(genesis);
+
+                instance.saveToFile();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void addBlock(Block block) {
@@ -64,6 +86,49 @@ public class Blockchain {
         return total;
     }
 
+    /**
+     * Creates the genesis block for the coin.
+     *
+     * @return
+     * @throws Exception
+     */
+    private Block getGenesisBlock() throws Exception {
+        ArrayList<Transaction> transactionList = new ArrayList<Transaction>();
+
+        Transaction trx = new Transaction(
+            "",
+            Coin.GENESIS_WALLET_ADDRESS,
+            5000,
+            1717779330000L,
+            ""
+        );
+        transactionList.add(trx);
+
+        Block genesis = new Block("", 1, 1234565454, transactionList);
+
+        return genesis;
+    }
+
+    public boolean readFromFile() {
+        try {
+            byte[] bytes = Files.readAllBytes(Paths.get("output.json"));
+            String content = new String(bytes);
+
+            return false;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public void saveToFile() {
+        try {
+            JsonArray array = this.toJsonArray(true);
+            Files.write(Paths.get("output.json"), new Gson().toJson(array).getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public JsonArray toJsonArray(boolean expand) {
         JsonArray blockchainJson = new JsonArray();
 
@@ -97,9 +162,5 @@ public class Blockchain {
         }
 
         return blockchainJson;
-    }
-
-    public void saveToFile() {
-
     }
 }

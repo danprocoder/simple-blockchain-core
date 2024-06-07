@@ -1,4 +1,4 @@
-package com.test.peer;
+package com.test.network.peer;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Base64;
 
 import com.test.network.ConnectionHeader;
+import com.test.network.Response;
 
 /**
  * Class representing connections made by clients via WebSocket (e.g Web Wallets).
@@ -66,6 +67,11 @@ public class WebSocketPeer extends Peer {
         }
 
         return new String(bytes);
+    }
+
+    @Override()
+    public void sendData(Response response) throws IOException {
+        this.sendData(response.toString());
     }
 
     @Override()

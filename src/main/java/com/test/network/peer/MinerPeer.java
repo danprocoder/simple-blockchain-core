@@ -1,4 +1,4 @@
-package com.test.peer;
+package com.test.network.peer;
 
 import java.io.IOException;
 import java.net.Socket;

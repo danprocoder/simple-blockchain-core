@@ -1,13 +1,11 @@
 package com.test.controllers;
 
-import java.io.IOException;
-
 import com.google.gson.internal.LinkedTreeMap;
 import com.test.dto.Transaction;
 import com.test.network.ConnectionManager;
 import com.test.network.Request;
 import com.test.network.Response;
-import com.test.peer.Peer;
+import com.test.network.peer.Peer;
 
 public class SendTransactionController extends Controller {
     public SendTransactionController(Peer origin) {
@@ -15,7 +13,7 @@ public class SendTransactionController extends Controller {
     }
 
     @Override()
-    public void onRequest(Request request) {
+    public Response onRequest(Request request) {
         LinkedTreeMap<String, Object> data = request.getData();
 
         try {
@@ -28,21 +26,20 @@ public class SendTransactionController extends Controller {
             );
 
             if (!trx.verifySignature(trx.getFromAddress())) {
-
                 Response response = new Response("send-transaction");
                 response.addHeader("Status", 422);
-                this.origin.sendData(response);
-                return;
+                return response;
             }
 
-            this.origin.sendData(new Response("send-transaction"));
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
+            ConnectionManager.getInstance().broadcastToMiners(request.getRawJson());
+
+            Response response = new Response("send-transaction", "text/plain");
+            response.setBody("Transaction send to miner");
+            return response;
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        ConnectionManager.getInstance().broadcastToMiners(request.getRawJson());
+        return null;
     }
 }

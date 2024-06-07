@@ -15,8 +15,8 @@ import com.test.controllers.GetBlockChainController;
 import com.test.controllers.SendTransactionController;
 import com.test.network.ConnectionHeader;
 import com.test.network.ConnectionManager;
-import com.test.peer.Peer;
-import com.test.peer.PeerFactory;
+import com.test.network.peer.Peer;
+import com.test.network.peer.PeerFactory;
 
 public class Server {
     private static Server instance;
@@ -58,8 +58,8 @@ public class Server {
     private HashMap<String, Controller> getRoutes(Peer peer) {
         HashMap<String, Controller> controllerMap = new HashMap<String, Controller>();
 
-        controllerMap.put("block", new AddBlockController(peer));
-        controllerMap.put("transaction", new SendTransactionController(peer));
+        controllerMap.put("add-block", new AddBlockController(peer));
+        controllerMap.put("send-transaction", new SendTransactionController(peer));
         controllerMap.put("get-blockchain", new GetBlockChainController(peer));
         controllerMap.put("get-balance-for-address", new GetAddressBalanceController(peer));
 

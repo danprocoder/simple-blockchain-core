@@ -5,7 +5,7 @@ import com.google.gson.JsonArray;
 import com.test.blockchain.Blockchain;
 import com.test.network.Request;
 import com.test.network.Response;
-import com.test.peer.Peer;
+import com.test.network.peer.Peer;
 
 public class GetBlockChainController extends Controller {
     public GetBlockChainController(Peer origin) {
@@ -13,16 +13,12 @@ public class GetBlockChainController extends Controller {
     }
     
     @Override()
-    public void onRequest(Request request) {
-        try {
-            JsonArray blockchain = Blockchain.getInstance().toJsonArray(false);
-            String json = new Gson().toJson(blockchain);
+    public Response onRequest(Request request) {
+        JsonArray blockchain = Blockchain.getInstance().toJsonArray(false);
+        String json = new Gson().toJson(blockchain);
 
-            Response response = new Response("blockchain-fetched");
-            response.setBody(json);
-            this.origin.sendData(response);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        Response response = new Response("get-blockchain");
+        response.setBody(json);
+        return response;
     }
 }

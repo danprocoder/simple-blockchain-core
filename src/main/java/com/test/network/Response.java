@@ -4,13 +4,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Response {
-
     private String body;
 
     private final Map<String, String> header = new HashMap<String, String>();
 
     public Response(String channel) {
         header.put("Channel", channel);
+        header.put("Content-Type", "application/json");
+    }
+
+    public Response(String channel, String contentType) {
+        header.put("Event", channel);
+        header.put("Content-Type", contentType);
     }
 
     public void addHeader(String key, String value) {

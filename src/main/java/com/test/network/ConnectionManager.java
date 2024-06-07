@@ -3,9 +3,10 @@ package com.test.network;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import com.test.peer.MinerPeer;
-import com.test.peer.NodePeer;
-import com.test.peer.Peer;
+import com.test.network.peer.MinerPeer;
+import com.test.network.peer.NodePeer;
+import com.test.network.peer.Peer;
+import com.test.network.peer.WebSocketPeer;
 
 public class ConnectionManager {
     private static ConnectionManager instance;
@@ -42,6 +43,18 @@ public class ConnectionManager {
             if (connected instanceof NodePeer) {
                 try {
                     connected.sendData(message);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public void broadcastToWallets(Response response) {
+        for (Peer connected: this.connectedPeers) {
+            if (connected instanceof WebSocketPeer) {
+                try {
+                    connected.sendData(response);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

@@ -1,4 +1,4 @@
-package com.test.peer;
+package com.test.network.peer;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -48,9 +48,7 @@ public abstract class Peer extends Thread {
     }
 
     public void sendData(Response response) throws IOException {
-        System.out.println(response.toString());
-        this.dos.write(response.toString().getBytes());
-        this.dos.flush();
+        this.sendData(response.toString());
     }
 
     protected void fetchMessages() {
@@ -71,8 +69,29 @@ public abstract class Peer extends Thread {
     }
 
     protected void handleRequest(Request request) {
-        Controller controller = this.controllerMap.get(request.getAction());
-        controller.onRequest(request);
+        String eventName = request.getAction();
+
+        Controller controller = this.controllerMap.get(eventName);
+        if (controller == null) {
+            try {
+                Response response = new Response(eventName, "text/plain");
+                response.setBody("Unknown event: " + eventName);
+                this.sendData(response);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return;
+        }
+
+        Response response = controller.onRequest(request);
+        if (response != null) {
+            try {
+                this.sendData(response);
+            } catch (IOException e) {
+                e.printStackTrace();
+
+            }
+        }
     }
 
     protected void onMessageFetched(String json) {

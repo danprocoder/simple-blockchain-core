@@ -13,7 +13,7 @@ public class Transaction {
 
     private String to;
 
-    private Double amount;
+    private double amount;
 
     private long timestamp;
 
@@ -21,7 +21,7 @@ public class Transaction {
 
     private String hash;
 
-    public Transaction(String from, String to, Double amount, long timestamp, String signature) throws Exception {
+    public Transaction(String from, String to, double amount, long timestamp, String signature) throws Exception {
         this.from = from;
         this.to = to;
         this.amount = amount;
@@ -38,7 +38,7 @@ public class Transaction {
         return this.to;
     }
 
-    public Double getAmount() {
+    public double getAmount() {
         return this.amount;
     }
 
@@ -65,7 +65,7 @@ public class Transaction {
     
             Signature verifier = Signature.getInstance("SHA256withRSA");
             verifier.initVerify(publicKey);
-            verifier.update(this.getStringData().getBytes());
+            verifier.update(this.toString().getBytes());
 
             return verifier.verify(Base64.getDecoder().decode(this.signature));
         } catch (Exception e) {
@@ -76,7 +76,7 @@ public class Transaction {
 
     public String computeHash() throws Exception {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        byte[] hashBytes = digest.digest(this.getStringData().getBytes());
+        byte[] hashBytes = digest.digest(this.toString().getBytes());
 
         Formatter formatter = new Formatter();
         for (byte b: hashBytes) formatter.format("%02x", b);
@@ -87,7 +87,8 @@ public class Transaction {
         return hex;
     }
 
-    public String getStringData() {
+    @Override()
+    public String toString() {
         return "Trx{from=" + this.from + ", to=" + this.to + ", amount=" + this.amount + ", timestamp=" + this.timestamp + "}";
     }
 }

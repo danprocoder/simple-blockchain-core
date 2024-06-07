@@ -1,7 +1,8 @@
 package com.test.controllers;
 
 import com.test.network.Request;
-import com.test.peer.Peer;
+import com.test.network.Response;
+import com.test.network.peer.Peer;
 
 public abstract class Controller {
     /**
@@ -17,5 +18,5 @@ public abstract class Controller {
         this.origin = origin;
     }
 
-    public abstract void onRequest(Request request);
+    public abstract Response onRequest(Request request);
 }

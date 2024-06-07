@@ -1,19 +1,15 @@
 package com.test.controllers;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import com.google.gson.internal.LinkedTreeMap;
 import com.test.blockchain.Blockchain;
 import com.test.dto.Block;
 import com.test.dto.Transaction;
 import com.test.network.ConnectionManager;
 import com.test.network.Request;
-import com.test.peer.Peer;
+import com.test.network.Response;
+import com.test.network.peer.Peer;
 
 public class AddBlockController extends Controller {
     public AddBlockController(Peer origin) {
@@ -21,7 +17,7 @@ public class AddBlockController extends Controller {
     }
 
     @Override()
-    public void onRequest(Request request) {
+    public Response onRequest(Request request) {
         LinkedTreeMap<String, Object> data = request.getData();
 
         ArrayList<LinkedTreeMap<String, Object>> maps = (ArrayList<LinkedTreeMap<String, Object>>) data.get("transactions");
@@ -32,37 +28,53 @@ public class AddBlockController extends Controller {
                 Transaction transaction = new Transaction(
                     (String) map.get("from"),
                     (String) map.get("to"),
-                    (Double) map.get("amount"),
+                    ((Double) map.get("amount")).doubleValue(),
                     ((Double) map.get("timestamp")).longValue(),
                     (String) map.get("signature")
                 );
                 transactions.add(transaction);
             }
         } catch (Exception e) {
-            return;
+            e.printStackTrace();
+            return null;
         }
 
         Block block = new Block(
             (String) data.get("previousHash"),
             (String) data.get("hash"),
-            (Double) data.get("nonce"),
-            (Double) data.get("timestamp"),
+            ((Double) data.get("nonce")).intValue(),
+            ((Double) data.get("timestamp")).longValue(),
             transactions
         );
 
         // Broadcast to other nodes on the network
-        ConnectionManager.getInstance().broadcastToNodes(request.getRawJson());
+        ConnectionManager connectionManager = ConnectionManager.getInstance();
+        connectionManager.broadcastToNodes(request.getRawJson());
 
         try {
             this.validateBlock(block);
             this.validateTransactions(transactions);
     
             this.addToLocalBlockchain(block);
+
+            // Broadcast the verified block back to the miners.
+            Response response = new Response("send-transaction");
+            response.setBody(request.getRawJson());
+            connectionManager.broadcastToWallets(response);
         } catch (Exception e) {
             System.out.println("Illegal Block (" + block.getHash() + "): " + e.getMessage());
         }
+
+        return null;
     }
 
+    /**
+     * Checks if the hash returned by the miner matches our own generated hash.
+     *
+     * @param block
+     * @return
+     * @throws Exception
+     */
     private boolean validateBlock(Block block) throws Exception {
         if (!block.computeHash().equals(block.getHash())) {
             throw new Exception("Invalid Hash");
@@ -116,11 +128,7 @@ public class AddBlockController extends Controller {
             blockchain.addOrphanBlock(block);
         }
 
-        try {
-            JsonArray array = Blockchain.getInstance().toJsonArray(true);
-            Files.write(Paths.get("output.json"), new Gson().toJson(array).getBytes());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        // Update blockchain file
+        blockchain.saveToFile();
     }
 }
