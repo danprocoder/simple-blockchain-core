@@ -42,22 +42,16 @@ public abstract class Peer extends Thread {
         this.controllerMap = routes;
     }
 
-    public void sendData(String payload) throws IOException {
-        this.dos.write(payload.getBytes());
-        this.dos.flush();
-    }
-
-    public void sendData(Response response) throws IOException {
-        this.sendData(response.toString());
-    }
-
     protected void fetchMessages() {
         try {
             byte[] buffer = new byte[1024];
             int bytesRead = 0;
             while ((bytesRead = this.socket.getInputStream().read(buffer)) != -1) {
                 String json = this.processBytesRead(buffer, bytesRead);
-                this.onMessageFetched(json);
+
+                Request request = new Gson().fromJson(json, Request.class);
+                request.setRawJson(json);
+                this.handleRequest(request);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -66,6 +60,15 @@ public abstract class Peer extends Thread {
 
     protected String processBytesRead(byte[] buffer, int length) {
         return new String(Arrays.copyOfRange(buffer, 0, length));
+    }
+
+    public void sendData(byte[] b) throws IOException {
+        this.dos.write(b);
+        this.dos.flush();
+    }
+
+    public void sendData(Response response) throws IOException {
+        this.sendData(response.toString().getBytes());
     }
 
     protected void handleRequest(Request request) {
@@ -92,11 +95,5 @@ public abstract class Peer extends Thread {
 
             }
         }
-    }
-
-    protected void onMessageFetched(String json) {
-        Request request = new Gson().fromJson(json, Request.class);
-        request.setRawJson(json);
-        this.handleRequest(request);
     }
 }

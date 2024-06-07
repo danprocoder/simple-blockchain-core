@@ -15,7 +15,7 @@ public class Main {
 
             server.listenForConnections(Integer.parseInt(args[0]));
         } catch (IOException e) {
-            System.out.println(e.toString());
+            e.printStackTrace();
         }
     }
 }

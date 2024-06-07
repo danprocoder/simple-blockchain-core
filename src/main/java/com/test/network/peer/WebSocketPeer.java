@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.util.Base64;
 
 import com.test.network.ConnectionHeader;
-import com.test.network.Response;
 
 /**
  * Class representing connections made by clients via WebSocket (e.g Web Wallets).
@@ -32,7 +31,7 @@ public class WebSocketPeer extends Peer {
                 + "Connection: Upgrade\r\n"
                 + "Sec-WebSocket-Accept: " + acceptKey + "\r\n\r\n";
 
-            super.sendData(responseHeader);
+            super.sendData(responseHeader.getBytes());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -70,14 +69,7 @@ public class WebSocketPeer extends Peer {
     }
 
     @Override()
-    public void sendData(Response response) throws IOException {
-        this.sendData(response.toString());
-    }
-
-    @Override()
-    public void sendData(String data) throws IOException {
-        byte[] stringBytes = data.getBytes();
-
+    public void sendData(byte[] stringBytes) throws IOException {
         int newLength = 2 + stringBytes.length;
         int startIndex = 2;
 
@@ -92,11 +84,11 @@ public class WebSocketPeer extends Peer {
         
         bytes[0] = (byte) 0x81;
 
-        if (stringBytes.length <= 126) {
+        if (stringBytes.length <= 125) {
             bytes[1] = (byte) (stringBytes.length & 0x7F);
         } else {
             bytes[1] = 126;
-            bytes[2] = (byte) ((stringBytes.length >> 8) * 0xFF);
+            bytes[2] = (byte) ((stringBytes.length >> 8) & 0xFF);
             bytes[3] = (byte) (stringBytes.length & 0xFF);
         }
 
@@ -104,8 +96,14 @@ public class WebSocketPeer extends Peer {
             bytes[i] += stringBytes[i - startIndex];
         }
 
-        this.dos.write(bytes);
-        this.dos.flush();
+        // Send data in chunks
+        int CHUNK_SIZE = 64;
+
+        for (int i = 0; i < bytes.length; i += CHUNK_SIZE) {
+            int length = Math.min(CHUNK_SIZE, bytes.length - i);
+            this.dos.write(bytes, i, length);
+            this.dos.flush();
+        }
     }
 
 }

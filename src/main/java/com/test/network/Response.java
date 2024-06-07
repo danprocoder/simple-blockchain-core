@@ -9,7 +9,7 @@ public class Response {
     private final Map<String, String> header = new HashMap<String, String>();
 
     public Response(String channel) {
-        header.put("Channel", channel);
+        header.put("Event", channel);
         header.put("Content-Type", "application/json");
     }
 

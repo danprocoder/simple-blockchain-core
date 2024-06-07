@@ -30,7 +30,7 @@ public class ConnectionManager {
         for (Peer connected: this.connectedPeers) {
             if (connected instanceof MinerPeer) {
                 try {
-                    connected.sendData(message);
+                    connected.sendData(message.getBytes());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -42,7 +42,7 @@ public class ConnectionManager {
         for (Peer connected: this.connectedPeers) {
             if (connected instanceof NodePeer) {
                 try {
-                    connected.sendData(message);
+                    connected.sendData(message.getBytes());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -50,11 +50,16 @@ public class ConnectionManager {
         }
     }
 
-    public void broadcastToWallets(Response response) {
+    /**
+     * Send a message to everyone connected via websocket.
+     *
+     * @param message
+     */
+    public void broadcastToWebSocketClients(Response message) {
         for (Peer connected: this.connectedPeers) {
             if (connected instanceof WebSocketPeer) {
                 try {
-                    connected.sendData(response);
+                    connected.sendData(message);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

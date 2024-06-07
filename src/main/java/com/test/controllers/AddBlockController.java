@@ -57,10 +57,11 @@ public class AddBlockController extends Controller {
     
             this.addToLocalBlockchain(block);
 
-            // Broadcast the verified block back to the miners.
-            Response response = new Response("send-transaction");
-            response.setBody(request.getRawJson());
-            connectionManager.broadcastToWallets(response);
+            // Broadcast the verified block to wallets so they can alert the user.
+            // TODO: refactor to only send to the wallet that sent the request.
+            Response response = new Response("block-verified");
+            response.setBody(block.toJson());
+            connectionManager.broadcastToWebSocketClients(response);
         } catch (Exception e) {
             System.out.println("Illegal Block (" + block.getHash() + "): " + e.getMessage());
         }
@@ -102,6 +103,7 @@ public class AddBlockController extends Controller {
     }
 
     private boolean validateCoinbaseTransaction(Transaction coinbase) throws Exception {
+        // TODO: Work out why this is not verifying
         // if (!coinbase.verifySignature(coinbase.getToAddress())) {
         //     throw new Exception("Coinbase: Verification failed with miners address");
         // }

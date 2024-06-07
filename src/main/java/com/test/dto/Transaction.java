@@ -8,6 +8,9 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 import java.util.Formatter;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+
 public class Transaction {
     private String from;
 
@@ -85,6 +88,19 @@ public class Transaction {
         formatter.close();
         
         return hex;
+    }
+
+    public String toJson() {
+        JsonObject json = new JsonObject();
+
+        json.addProperty("from", this.from);
+        json.addProperty("to", this.to);
+        json.addProperty("amount", this.amount);
+        json.addProperty("timestamp", this.timestamp);
+        json.addProperty("signature", this.signature);
+        json.addProperty("hash", this.hash);
+
+        return new Gson().toJson(json);
     }
 
     @Override()

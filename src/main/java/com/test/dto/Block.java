@@ -2,6 +2,9 @@ package com.test.dto;
 
 import java.util.ArrayList;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.test.helper.SecurityHelper;
 
 public class Block {
@@ -28,7 +31,7 @@ public class Block {
         this.nonce = nonce;
         this.timestamp = timestamp;
         this.transactions = transactions;
-        
+
         this.hash = this.computeHash();
     }
 
@@ -62,5 +65,22 @@ public class Block {
         data += this.nonce;
 
         return SecurityHelper.hashSHA256(data);
+    }
+
+    public String toJson() {
+        JsonObject json = new JsonObject();
+
+        json.addProperty("previousHash", this.previousHash);
+        json.addProperty("hash", this.hash);
+        json.addProperty("nonce", this.nonce);
+        json.addProperty("timestamp", this.timestamp);
+
+        JsonArray trxJsonArray = new JsonArray();
+        for (Transaction trx: this.getTransactions()) {
+            trxJsonArray.add(trx.toJson());
+        }
+        json.add("transactions", trxJsonArray);
+
+        return new Gson().toJson(json);
     }
 }

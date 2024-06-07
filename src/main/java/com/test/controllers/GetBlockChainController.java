@@ -7,6 +7,9 @@ import com.test.network.Request;
 import com.test.network.Response;
 import com.test.network.peer.Peer;
 
+/**
+ * Controller to handle requests to get all blockchain records.
+ */
 public class GetBlockChainController extends Controller {
     public GetBlockChainController(Peer origin) {
         super(origin);
