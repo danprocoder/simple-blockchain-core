@@ -17,11 +17,11 @@ public class WebSocketPeer extends Peer {
     @Override()
     public void initiateHandshake() {
         try {
-            byte[] webSocketKey = this.header.getHeader("Sec-WebSocket-Key")
+            byte[] acceptKeyBytes = this.header.getHeader("Sec-WebSocket-Key")
                 .concat("258EAFA5-E914-47DA-95CA-C5AB0DC85B11")
                 .getBytes();
             String acceptKey = Base64.getEncoder().encodeToString(
-                MessageDigest.getInstance("SHA-1").digest(webSocketKey)
+                MessageDigest.getInstance("SHA-1").digest(acceptKeyBytes)
             );
 
             String responseHeader = "HTTP/1.1 101 Switching Protocols\r\n"

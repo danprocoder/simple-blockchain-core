@@ -2,17 +2,27 @@ package com.test.network;
 
 public class Response {
 
-    private final short status;
+    private final int status;
 
     private final String statusText;
 
-    public Response(short status, String statusText) {
+    private String body;
+
+    public Response(int status, String statusText) {
         this.status = status;
         this.statusText = statusText;
+    }
+
+    public void setBody(String body) {
+        this.body = body;
     }
     
     @Override()
     public String toString() {
-        return this.status + " " + this.statusText;
+        String value = this.status + " " + this.statusText;
+        if (this.body != null) {
+            value += "\r\n\r\n" + this.body;
+        }
+        return value;
     }
 }

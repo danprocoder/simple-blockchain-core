@@ -16,6 +16,7 @@ import com.test.controllers.GetBlockChainController;
 import com.test.controllers.SendTransactionController;
 import com.test.network.ConnectionHeader;
 import com.test.network.Request;
+import com.test.network.Response;
 
 public abstract class Peer extends Thread {
     protected final Socket socket;
@@ -50,6 +51,11 @@ public abstract class Peer extends Thread {
 
     public void sendData(String payload) throws IOException {
         this.dos.write(payload.getBytes());
+        this.dos.flush();
+    }
+
+    public void sendData(Response response) throws IOException {
+        this.dos.write(response.toString().getBytes());
         this.dos.flush();
     }
 

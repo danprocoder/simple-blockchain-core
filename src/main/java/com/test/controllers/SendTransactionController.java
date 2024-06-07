@@ -6,6 +6,7 @@ import com.google.gson.internal.LinkedTreeMap;
 import com.test.dto.Transaction;
 import com.test.network.ConnectionManager;
 import com.test.network.Request;
+import com.test.network.Response;
 import com.test.peer.Peer;
 
 public class SendTransactionController extends Controller {
@@ -27,9 +28,11 @@ public class SendTransactionController extends Controller {
             );
 
             if (!trx.verifySignature(trx.getFromAddress())) {
-                this.origin.sendData("422 Failed to verify signature");
+                this.origin.sendData(new Response(422, "Failed to verify signature"));
                 return;
             }
+
+            this.origin.sendData(new Response(200, "Trx sent for mining"));
         } catch (IOException e) {
             e.printStackTrace();
             return;
