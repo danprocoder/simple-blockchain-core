@@ -38,10 +38,24 @@ public class Blockchain {
         return null;
     }
 
-    public double getAddressBalance(String address) {
-        double balance = 0;
+    /**
+     * Returns all the transaction made to/from the provided address on the stored blockchain.
+     *
+     * @param address the address to check
+     * @return ArrayList a list transactions
+     */
+    public ArrayList<Transaction> getTransactionsForAddress(String address) {
+        ArrayList<Transaction> transactionList = new ArrayList<Transaction>();
 
-        return balance;
+        for (Block block: this.chain) {
+            for (Transaction transaction: block.getTransactions()) {
+                if (transaction.getFromAddress().equals(address) || transaction.getToAddress().equals(address)) {
+                    transactionList.add(transaction);
+                }
+            }
+        }
+
+        return transactionList;
     }
 
     public double getTotalInCirculation() {
