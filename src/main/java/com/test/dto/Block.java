@@ -3,21 +3,22 @@ package com.test.dto;
 import java.util.ArrayList;
 
 public class Block {
-    private String previousHash;
+    final private String previousHash;
 
-    private String hash;
+    final private String hash;
 
-    private Double nonce;
+    final private Double nonce;
 
-    private Double timestamp;
+    final private Double timestamp;
 
-    ArrayList<Transaction> transactions = new ArrayList<Transaction>();
+    final ArrayList<Transaction> transactions;
 
-    public Block(String previousHash, String hash, Double nonce, Double timestamp) {
+    public Block(String previousHash, String hash, Double nonce, Double timestamp, ArrayList<Transaction> transactions) {
         this.previousHash = previousHash;
         this.hash = hash;
         this.nonce = nonce;
         this.timestamp = timestamp;
+        this.transactions = transactions;
     }
 
     public String getPreviousHash() {

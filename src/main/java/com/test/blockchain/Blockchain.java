@@ -51,15 +51,15 @@ public class Blockchain {
     }
 
     public JsonArray toJsonArray() {
-        JsonArray array = new JsonArray();
+        JsonArray blockchainJson = new JsonArray();
 
         for (Block block: this.chain) {
-            JsonObject object = new JsonObject();
+            JsonObject blockJson = new JsonObject();
 
-            object.addProperty("previousHash", block.getPreviousHash());
-            object.addProperty("hash", block.getHash());
-            object.addProperty("nonce", block.getNonce());
-            object.addProperty("timestamp", block.getTimestamp());
+            blockJson.addProperty("previousHash", block.getPreviousHash());
+            blockJson.addProperty("hash", block.getHash());
+            blockJson.addProperty("nonce", block.getNonce());
+            blockJson.addProperty("timestamp", block.getTimestamp());
 
             JsonArray transactions = new JsonArray();
             for (Transaction trx: block.getTransactions()) {
@@ -71,11 +71,12 @@ public class Blockchain {
 
                 transactions.add(trxObject);
             }
+            blockJson.add("transactions", transactions);
 
-            array.add(object);
+            blockchainJson.add(blockJson);
         }
 
-        return array;
+        return blockchainJson;
     }
 
     public void saveToFile() {
