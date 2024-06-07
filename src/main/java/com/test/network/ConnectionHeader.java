@@ -1,4 +1,4 @@
-package com.test.node;
+package com.test.network;
 
 import java.util.Map;
 

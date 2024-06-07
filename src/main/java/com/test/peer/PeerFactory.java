@@ -2,18 +2,17 @@ package com.test.peer;
 
 import java.net.Socket;
 
-import com.test.node.ConnectionHeader;
-import com.test.node.ServerListener;
+import com.test.network.ConnectionHeader;
 
 public class PeerFactory {
-    public static Peer getPeer(Socket client, ConnectionHeader header, ServerListener listener) throws Exception {
+    public static Peer getPeer(Socket client, ConnectionHeader header) throws Exception {
         switch (header.getClientType()) {
             case "web-wallet":
-                return new WebSocketPeer(client, header, listener);
+                return new WebSocketPeer(client, header);
             case "miner":
-                return new MinerPeer(client, header, listener);
+                return new MinerPeer(client, header);
             case "node":
-                return new NodePeer(client, header, listener);
+                return new NodePeer(client, header);
             default:
                 throw new Exception("Unknown client type");
         }

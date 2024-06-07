@@ -3,14 +3,15 @@ package com.test.peer;
 import java.io.IOException;
 import java.net.Socket;
 
-import com.test.node.ConnectionHeader;
-import com.test.node.ServerListener;
+import com.test.network.ConnectionHeader;
 
 public class NodePeer extends Peer {
-    public NodePeer(Socket client, ConnectionHeader header, ServerListener listener) throws IOException {
-        super(client, header, listener);
+    public NodePeer(Socket client, ConnectionHeader header) throws IOException {
+        super(client, header);
     }
 
     @Override()
-    protected void onMessageFetched(byte[] bytes, int length) {}
+    public void initiateHandshake() {
+        // TODO Auto-generated method stub
+    }
 }

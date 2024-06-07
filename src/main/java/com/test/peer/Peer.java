@@ -5,38 +5,48 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.internal.LinkedTreeMap;
-import com.test.dto.Block;
-import com.test.dto.Transaction;
-import com.test.node.ConnectionHeader;
-import com.test.node.ServerListener;
+import com.test.controllers.AddBlockController;
+import com.test.controllers.Controller;
+import com.test.controllers.GetAddressBalanceController;
+import com.test.controllers.GetBlockChainController;
+import com.test.controllers.SendTransactionController;
+import com.test.network.ConnectionHeader;
+import com.test.network.Request;
 
 public abstract class Peer extends Thread {
     protected final Socket socket;
     protected final ConnectionHeader header;
-    protected final ServerListener listener;
 
     protected BufferedReader reader;
     protected DataOutputStream dos;
 
-    public Peer(Socket socket, ConnectionHeader header, ServerListener listener) throws IOException {
+    HashMap<String, Controller> controllerMap = new HashMap<String, Controller>();
+
+    public Peer(Socket socket, ConnectionHeader header) throws IOException {
         this.socket = socket;
         this.header = header;
-        this.listener = listener;
 
         reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         dos = new DataOutputStream(socket.getOutputStream());
+
+        // Assign actions to controllers here.
+        // TODO: This might need to be refactored and moved somewhere.
+        controllerMap.put("block", new AddBlockController(this));
+        controllerMap.put("transaction", new SendTransactionController(this));
+        controllerMap.put("get-blockchain", new GetBlockChainController(this));
+        controllerMap.put("get-balance-for-address", new GetAddressBalanceController(this));
     }
 
     @Override()
     public void run() {
         this.fetchMessages();
     }
+
+    public abstract void initiateHandshake() throws Exception;
 
     public void sendData(String payload) throws IOException {
         this.dos.write(payload.getBytes());
@@ -48,67 +58,26 @@ public abstract class Peer extends Thread {
             byte[] buffer = new byte[1024];
             int bytesRead = 0;
             while ((bytesRead = this.socket.getInputStream().read(buffer)) != -1) {
-                this.onMessageFetched(Arrays.copyOfRange(buffer, 0, bytesRead), bytesRead);
+                String json = this.processBytesRead(buffer, bytesRead);
+                this.onMessageFetched(json);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    protected void handleRequest(Payload payload, String rawJson) {
-        LinkedTreeMap<String, Object> data = (LinkedTreeMap<String, Object>) payload.data;
-        switch (payload.action) {
-            // Handles a request to add a block to a blockchain. Used after mining.
-            case "block":
-                ArrayList<Transaction> transactions = new ArrayList<Transaction>();
-
-                ArrayList<LinkedTreeMap<String, Object>> maps = (ArrayList<LinkedTreeMap<String, Object>>) data.get("transactions");
-                for (LinkedTreeMap<String, Object> map: maps) {
-                    Transaction transaction = new Transaction(
-                        (String) map.get("from"),
-                        (String) map.get("to"),
-                        (Double) map.get("amount"),
-                        ((Double) map.get("timestamp")).longValue(),
-                        (String) map.get("signature")
-                    );
-                    transactions.add(transaction);
-                }
-
-                Block block = new Block(
-                    (String) data.get("previousHash"),
-                    (String) data.get("hash"),
-                    (Double) data.get("nonce"),
-                    (Double) data.get("timestamp"),
-                    transactions
-                );
-                
-                this.listener.onBlockReceived(block, this, rawJson);
-                break;
-
-            // Handles a request to make a transaction
-            case "transaction":
-                Transaction trx = new Transaction(
-                    (String) data.get("from"),
-                    (String) data.get("to"),
-                    (Double) data.get("amount"),
-                    ((Double) data.get("timestamp")).longValue(),
-                    (String) data.get("signature")
-                );
-                this.listener.onTransactionReceived(trx, this, rawJson);
-                break;
-
-            // Handles a request to get a list of all the blocks in the current blockchain
-            case "get-blockchain":
-                try {
-                    JsonArray blockchain = this.listener.onRequestBlockchain();
-                    String json = new Gson().toJson(blockchain);
-                    this.sendData(json);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                break;
-        }
+    protected String processBytesRead(byte[] buffer, int length) {
+        return new String(Arrays.copyOfRange(buffer, 0, length));
     }
 
-    protected abstract void onMessageFetched(byte[] bytes, int length);
+    protected void handleRequest(Request request) {
+        Controller controller = this.controllerMap.get(request.getAction());
+        controller.onRequest(request);
+    }
+
+    protected void onMessageFetched(String json) {
+        Request request = new Gson().fromJson(json, Request.class);
+        request.setRawJson(json);
+        this.handleRequest(request);
+    }
 }

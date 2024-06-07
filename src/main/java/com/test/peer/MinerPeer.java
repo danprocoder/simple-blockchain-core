@@ -3,20 +3,16 @@ package com.test.peer;
 import java.io.IOException;
 import java.net.Socket;
 
-import com.google.gson.Gson;
-import com.test.node.ConnectionHeader;
-import com.test.node.ServerListener;
+import com.test.network.ConnectionHeader;
 
 public class MinerPeer extends Peer {
-    public MinerPeer(Socket socket, ConnectionHeader header, ServerListener listener) throws IOException {
-        super(socket, header, listener);
+    public MinerPeer(Socket socket, ConnectionHeader header) throws IOException {
+        super(socket, header);
     }
 
     @Override()
-    protected void onMessageFetched(byte[] bytes, int length) {
-        String json = new String(bytes, 0, length);
-        Payload payload = new Gson().fromJson(json, Payload.class);
-        this.handleRequest(payload, json);
+    public void initiateHandshake() {
+        // TODO Auto-generated method stub
     }
 
     public String getAddress() {
