@@ -4,10 +4,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.internal.LinkedTreeMap;
 import com.test.core.Coin;
 import com.test.dto.Block;
 import com.test.dto.Transaction;
@@ -111,11 +113,41 @@ public class Blockchain {
 
     public boolean readFromFile() {
         try {
-            byte[] bytes = Files.readAllBytes(Paths.get("output.json"));
+            byte[] bytes = Files.readAllBytes(Paths.get("C:/Users/Daniel/.coin.json"));
             String content = new String(bytes);
 
-            return false;
+            Gson gson = new Gson();
+            List<LinkedTreeMap<String, Object>> list = gson.fromJson(content, ArrayList.class);
+            for (LinkedTreeMap<String, Object> item: list) {
+                ArrayList<Transaction> transactions = new ArrayList<Transaction>();
+
+                Block blk = new Block(
+                    (String) item.get("previousHash"),
+                    (String) item.get("hash"),
+                    ((Double) item.get("nonce")).intValue(),
+                    ((Double) item.get("timestamp")).longValue(),
+                    transactions
+                );
+
+                List<LinkedTreeMap<String, Object>> trxList = (List<LinkedTreeMap<String, Object>>) item.get("transactions");
+                for (LinkedTreeMap<String, Object> trxObject: trxList) {
+                    Transaction trx = new Transaction(
+                        (String) trxObject.get("from"),
+                        (String) trxObject.get("to"),
+                        (Double) trxObject.get("amount"),
+                        ((Double) trxObject.get("timestamp")).longValue(),
+                        (String) trxObject.get("signature")
+                    );
+
+                    transactions.add(trx);
+                }
+
+                this.chain.add(blk);
+            }
+
+            return true;
         } catch (Exception e) {
+            e.printStackTrace();
             return false;
         }
     }
@@ -123,7 +155,7 @@ public class Blockchain {
     public void saveToFile() {
         try {
             JsonArray array = this.toJsonArray(true);
-            Files.write(Paths.get("output.json"), new Gson().toJson(array).getBytes());
+            Files.write(Paths.get("C:/Users/Daniel/.coin.json"), new Gson().toJson(array).getBytes());
         } catch (IOException e) {
             e.printStackTrace();
         }
