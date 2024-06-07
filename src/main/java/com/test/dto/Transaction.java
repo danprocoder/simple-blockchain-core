@@ -25,6 +25,22 @@ public class Transaction {
         this.signature = signature;
     }
 
+    public String getFromAddress() {
+        return this.from;
+    }
+
+    public String getToAddress() {
+        return this.to;
+    }
+
+    public Double getAmount() {
+        return this.amount;
+    }
+
+    public long getTimestamp() {
+        return this.timestamp;
+    }
+
     public boolean verifySignature() {
         try {
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
@@ -41,8 +57,9 @@ public class Transaction {
             String data = "Trx{from=" + this.from + ", to=" + this.to + ", amount=" + this.amount + ", timestamp=" + this.timestamp + "}";
             verifier.update(data.getBytes());
 
-            return verifier.verify(this.signature.getBytes());
+            return verifier.verify(Base64.getDecoder().decode(this.signature));
         } catch (Exception e) {
+            e.printStackTrace();
             return false;
         }
     }

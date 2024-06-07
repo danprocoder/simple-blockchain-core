@@ -7,8 +7,6 @@ import java.util.Arrays;
 import java.util.Base64;
 
 import com.google.gson.Gson;
-import com.google.gson.internal.LinkedTreeMap;
-import com.test.dto.Transaction;
 import com.test.node.ConnectionHeader;
 import com.test.node.ServerListener;
 
@@ -55,18 +53,7 @@ public class WebSocketPeer extends Peer {
     protected void onMessageFetched(byte[] bytes, int length) {
         String message = this.parseWebSocketFrame(bytes, length);
         Payload payload = new Gson().fromJson(message, Payload.class);
-
-        LinkedTreeMap<String, Object> data = (LinkedTreeMap<String, Object>) payload.data;
-        if (payload.action.equals("transaction")) {
-            Transaction trx = new Transaction(
-                (String) data.get("from"),
-                (String) data.get("to"),
-                (Double) data.get("amount"),
-                ((Double) data.get("timestamp")).longValue(),
-                (String) data.get("signature")
-            );
-            this.listener.onTransactionReceived(trx, this, message);
-        }
+        this.handleRequest(payload, message);
     }
 
     @Override()
@@ -74,13 +61,29 @@ public class WebSocketPeer extends Peer {
         byte[] stringBytes = data.getBytes();
 
         int newLength = 2 + stringBytes.length;
+        int startIndex = 2;
+
+        // According to websocket protocol. If the length is greater than 125,
+        // We need to use extended payload lengths.
+        if (stringBytes.length > 125) {
+            newLength += 2;
+            startIndex += 2;
+        }
+
         byte[] bytes = new byte[newLength];
         
         bytes[0] = (byte) 0x81;
-        bytes[1] = (byte) (stringBytes.length & 0x7F);
 
-        for (int i = 2; i < newLength; i++) {
-            bytes[i] += stringBytes[i - 2];
+        if (stringBytes.length <= 126) {
+            bytes[1] = (byte) (stringBytes.length & 0x7F);
+        } else {
+            bytes[1] = 126;
+            bytes[2] = (byte) ((stringBytes.length >> 8) * 0xFF);
+            bytes[3] = (byte) (stringBytes.length & 0xFF);
+        }
+
+        for (int i = startIndex; i < newLength; i++) {
+            bytes[i] += stringBytes[i - startIndex];
         }
 
         this.dos.write(bytes);

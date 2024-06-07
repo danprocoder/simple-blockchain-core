@@ -5,10 +5,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.test.blockchain.Blockchain;
 import com.test.dto.Block;
 import com.test.dto.Transaction;
@@ -74,10 +78,8 @@ public class Server implements ServerListener {
 
     @Override()
     public void onTransactionReceived(Transaction trx, Peer peer, String rawMessage) {
-        System.out.println("Transaction request received from wallet");
         try {
             if (!trx.verifySignature()) {
-                System.out.println("Transaction verification failed. Sending message back");
                 peer.sendData("422 Failed to verify signature");
                 return;
             }
@@ -86,7 +88,6 @@ public class Server implements ServerListener {
             return;
         }
 
-        System.out.println("Verified successfully. Broadcasting to miners.");
         for (Peer connected: this.connectedPeers) {
             if (!(connected instanceof MinerPeer)) {
                 continue;
@@ -95,26 +96,13 @@ public class Server implements ServerListener {
             try {
                 connected.sendData(rawMessage);
             } catch (IOException e) {
-                System.out.println("Failed to send transaction to miner.");
+                e.printStackTrace();
             }
         }
     }
 
     @Override()
     public void onBlockReceived(Block block, Peer peer, String rawMessage) {
-        if (!block.computeHash().equals(block.getHash())) {
-            return;
-        }
-
-        Blockchain blockchain = Blockchain.getInstance();
-        Block lastBlock = blockchain.getLastBlock();
-        if (lastBlock == null || lastBlock.getHash().equals(block.getPreviousHash())) {
-            blockchain.addBlock(block);
-        } else {
-            // Add to orphan block to be rearranged later.
-            blockchain.addOrphanBlock(block);
-        }
-
         // Broadcast to other nodes on the network
         for (Peer connected: this.connectedPeers) {
             try {
@@ -127,5 +115,34 @@ public class Server implements ServerListener {
                 e.printStackTrace();
             }
         }
+
+        if (!block.computeHash().equals(block.getHash())) {
+            System.out.println("Block rejected (" + block.getHash() + "): Hash mismatch");
+            return;
+        }
+
+        String minerAddress = ((MinerPeer) peer).getAddress();
+
+        Blockchain blockchain = Blockchain.getInstance();
+        Block lastBlock = blockchain.getLastBlock();
+        if (lastBlock == null || lastBlock.getHash().equals(block.getPreviousHash())) {
+            blockchain.addBlock(block);
+            System.out.println("Added to blockchain: " + block.getHash());
+        } else {
+            // Add to orphan block to be rearranged later.
+            blockchain.addOrphanBlock(block);
+        }
+
+        try {
+            JsonArray array = Blockchain.getInstance().toJsonArray();
+            Files.write(Paths.get("output.json"), new Gson().toJson(array).getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override()
+    public JsonArray onRequestBlockchain() {
+        return Blockchain.getInstance().toJsonArray();
     }
 }

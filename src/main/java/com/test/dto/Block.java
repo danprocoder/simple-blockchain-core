@@ -1,5 +1,7 @@
 package com.test.dto;
 
+import java.util.ArrayList;
+
 public class Block {
     private String previousHash;
 
@@ -8,6 +10,8 @@ public class Block {
     private Double nonce;
 
     private Double timestamp;
+
+    ArrayList<Transaction> transactions = new ArrayList<Transaction>();
 
     public Block(String previousHash, String hash, Double nonce, Double timestamp) {
         this.previousHash = previousHash;
@@ -30,6 +34,10 @@ public class Block {
 
     public Double getTimestamp() {
         return this.timestamp;
+    }
+
+    public ArrayList<Transaction> getTransactions() {
+        return this.transactions;
     }
 
     public String computeHash() {
