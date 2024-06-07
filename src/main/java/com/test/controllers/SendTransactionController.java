@@ -17,22 +17,24 @@ public class SendTransactionController extends Controller {
     public void onRequest(Request request) {
         LinkedTreeMap<String, Object> data = request.getData();
 
-        Transaction trx = new Transaction(
-            (String) data.get("from"),
-            (String) data.get("to"),
-            (Double) data.get("amount"),
-            ((Double) data.get("timestamp")).longValue(),
-            (String) data.get("signature")
-        );
-
         try {
-            if (!trx.verifySignature()) {
+            Transaction trx = new Transaction(
+                (String) data.get("from"),
+                (String) data.get("to"),
+                (Double) data.get("amount"),
+                ((Double) data.get("timestamp")).longValue(),
+                (String) data.get("signature")
+            );
+
+            if (!trx.verifySignature(trx.getFromAddress())) {
                 this.origin.sendData("422 Failed to verify signature");
                 return;
             }
         } catch (IOException e) {
             e.printStackTrace();
             return;
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         ConnectionManager.getInstance().broadcastToMiners(request.getRawJson());

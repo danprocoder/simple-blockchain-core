@@ -14,7 +14,7 @@ public class GetBlockChainController extends Controller {
     @Override()
     public void onRequest(Request request) {
         try {
-            JsonArray blockchain = Blockchain.getInstance().toJsonArray();
+            JsonArray blockchain = Blockchain.getInstance().toJsonArray(false);
             String json = new Gson().toJson(blockchain);
             this.origin.sendData(json);
         } catch (Exception e) {

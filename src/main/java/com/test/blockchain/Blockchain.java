@@ -50,7 +50,7 @@ public class Blockchain {
         return total;
     }
 
-    public JsonArray toJsonArray() {
+    public JsonArray toJsonArray(boolean expand) {
         JsonArray blockchainJson = new JsonArray();
 
         for (Block block: this.chain) {
@@ -61,17 +61,23 @@ public class Blockchain {
             blockJson.addProperty("nonce", block.getNonce());
             blockJson.addProperty("timestamp", block.getTimestamp());
 
-            JsonArray transactions = new JsonArray();
+            JsonArray trxJsonArray = new JsonArray();
             for (Transaction trx: block.getTransactions()) {
-                JsonObject trxObject = new JsonObject();
-                trxObject.addProperty("from", trx.getFromAddress());
-                trxObject.addProperty("to", trx.getToAddress());
-                trxObject.addProperty("amount", trx.getAmount());
-                trxObject.addProperty("timestamp", trx.getTimestamp());
-
-                transactions.add(trxObject);
+                if (expand) {
+                    JsonObject trxObject = new JsonObject();
+                    trxObject.addProperty("from", trx.getFromAddress());
+                    trxObject.addProperty("to", trx.getToAddress());
+                    trxObject.addProperty("amount", trx.getAmount());
+                    trxObject.addProperty("timestamp", trx.getTimestamp());
+                    trxObject.addProperty("signature", trx.getSignature());
+                    trxObject.addProperty("hash", trx.getHash());
+    
+                    trxJsonArray.add(trxObject);
+                } else {
+                    trxJsonArray.add(trx.getHash());
+                }
             }
-            blockJson.add("transactions", transactions);
+            blockJson.add("transactions", trxJsonArray);
 
             blockchainJson.add(blockJson);
         }
