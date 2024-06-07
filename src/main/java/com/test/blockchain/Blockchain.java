@@ -2,11 +2,13 @@ package com.test.blockchain;
 
 import java.util.ArrayList;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.test.dto.Block;
+import com.test.dto.Transaction;
 
 public class Blockchain {
     ArrayList<Block> chain = new ArrayList<Block>();
-
     ArrayList<Block> orphanBlocks = new ArrayList<Block>();
 
     private static Blockchain instance;
@@ -34,5 +36,50 @@ public class Blockchain {
         }
 
         return null;
+    }
+
+    public double getAddressBalance(String address) {
+        double balance = 0;
+
+        return balance;
+    }
+
+    public double getTotalInCirculation() {
+        double total = 0;
+
+        return total;
+    }
+
+    public JsonArray toJsonArray() {
+        JsonArray blockchainJson = new JsonArray();
+
+        for (Block block: this.chain) {
+            JsonObject blockJson = new JsonObject();
+
+            blockJson.addProperty("previousHash", block.getPreviousHash());
+            blockJson.addProperty("hash", block.getHash());
+            blockJson.addProperty("nonce", block.getNonce());
+            blockJson.addProperty("timestamp", block.getTimestamp());
+
+            JsonArray transactions = new JsonArray();
+            for (Transaction trx: block.getTransactions()) {
+                JsonObject trxObject = new JsonObject();
+                trxObject.addProperty("from", trx.getFromAddress());
+                trxObject.addProperty("to", trx.getToAddress());
+                trxObject.addProperty("amount", trx.getAmount());
+                trxObject.addProperty("timestamp", trx.getTimestamp());
+
+                transactions.add(trxObject);
+            }
+            blockJson.add("transactions", transactions);
+
+            blockchainJson.add(blockJson);
+        }
+
+        return blockchainJson;
+    }
+
+    public void saveToFile() {
+
     }
 }

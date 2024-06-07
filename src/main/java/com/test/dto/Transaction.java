@@ -13,16 +13,32 @@ public class Transaction {
 
     private Double amount;
 
-    private Double timestamp;
+    private long timestamp;
 
     private String signature;
 
-    public Transaction(String from, String to, Double amount, Double timestamp, String signature) {
+    public Transaction(String from, String to, Double amount, long timestamp, String signature) {
         this.from = from;
         this.to = to;
         this.amount = amount;
         this.timestamp = timestamp;
         this.signature = signature;
+    }
+
+    public String getFromAddress() {
+        return this.from;
+    }
+
+    public String getToAddress() {
+        return this.to;
+    }
+
+    public Double getAmount() {
+        return this.amount;
+    }
+
+    public long getTimestamp() {
+        return this.timestamp;
     }
 
     public boolean verifySignature() {
@@ -37,25 +53,13 @@ public class Transaction {
     
             Signature verifier = Signature.getInstance("SHA256withRSA");
             verifier.initVerify(publicKey);
-            System.out.println(
-                "Trx{from=" + this.from +
-                ", to=" + this.to +
-                ", amount=" + this.amount +
-                ", timestamp=" + this.timestamp +
-                "}"
-            );
-            verifier.update(
-                (
-                    "Trx{from=" + this.from +
-                    ", to=" + this.to +
-                    ", amount=" + this.amount +
-                    ", timestamp=" + this.timestamp +
-                    "}"
-                ).getBytes()
-            );
 
-            return verifier.verify(this.signature.getBytes());
+            String data = "Trx{from=" + this.from + ", to=" + this.to + ", amount=" + this.amount + ", timestamp=" + this.timestamp + "}";
+            verifier.update(data.getBytes());
+
+            return verifier.verify(Base64.getDecoder().decode(this.signature));
         } catch (Exception e) {
+            e.printStackTrace();
             return false;
         }
     }
