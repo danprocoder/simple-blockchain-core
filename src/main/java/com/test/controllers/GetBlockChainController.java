@@ -18,7 +18,7 @@ public class GetBlockChainController extends Controller {
             JsonArray blockchain = Blockchain.getInstance().toJsonArray(false);
             String json = new Gson().toJson(blockchain);
 
-            Response response = new Response(200, "Blockchain fetched");
+            Response response = new Response("blockchain-fetched");
             response.setBody(json);
             this.origin.sendData(response);
         } catch (Exception e) {

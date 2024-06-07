@@ -55,6 +55,7 @@ public abstract class Peer extends Thread {
     }
 
     public void sendData(Response response) throws IOException {
+        System.out.println(response.toString());
         this.dos.write(response.toString().getBytes());
         this.dos.flush();
     }

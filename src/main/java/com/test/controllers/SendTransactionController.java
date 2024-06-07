@@ -28,11 +28,14 @@ public class SendTransactionController extends Controller {
             );
 
             if (!trx.verifySignature(trx.getFromAddress())) {
-                this.origin.sendData(new Response(422, "Failed to verify signature"));
+
+                Response response = new Response("send-transaction");
+                response.addHeader("Status", 422);
+                this.origin.sendData(response);
                 return;
             }
 
-            this.origin.sendData(new Response(200, "Trx sent for mining"));
+            this.origin.sendData(new Response("send-transaction"));
         } catch (IOException e) {
             e.printStackTrace();
             return;
