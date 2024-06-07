@@ -9,8 +9,8 @@ import com.test.network.Request;
 import com.test.peer.Peer;
 
 public class SendTransactionController extends Controller {
-    public SendTransactionController(Peer peer) {
-        super(peer);
+    public SendTransactionController(Peer origin) {
+        super(origin);
     }
 
     @Override()
@@ -27,7 +27,7 @@ public class SendTransactionController extends Controller {
 
         try {
             if (!trx.verifySignature()) {
-                peer.sendData("422 Failed to verify signature");
+                this.origin.sendData("422 Failed to verify signature");
                 return;
             }
         } catch (IOException e) {

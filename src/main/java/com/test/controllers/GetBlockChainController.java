@@ -7,8 +7,8 @@ import com.test.network.Request;
 import com.test.peer.Peer;
 
 public class GetBlockChainController extends Controller {
-    public GetBlockChainController(Peer peer) {
-        super(peer);
+    public GetBlockChainController(Peer origin) {
+        super(origin);
     }
     
     @Override()
@@ -16,7 +16,7 @@ public class GetBlockChainController extends Controller {
         try {
             JsonArray blockchain = Blockchain.getInstance().toJsonArray();
             String json = new Gson().toJson(blockchain);
-            this.peer.sendData(json);
+            this.origin.sendData(json);
         } catch (Exception e) {
             e.printStackTrace();
         }

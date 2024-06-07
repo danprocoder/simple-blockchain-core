@@ -17,8 +17,8 @@ import com.test.peer.MinerPeer;
 import com.test.peer.Peer;
 
 public class AddBlockController extends Controller {
-    public AddBlockController(Peer peer) {
-        super(peer);
+    public AddBlockController(Peer origin) {
+        super(origin);
     }
 
     @Override()
@@ -54,7 +54,7 @@ public class AddBlockController extends Controller {
             return;
         }
 
-        String minerAddress = ((MinerPeer) peer).getAddress();
+        String minerAddress = ((MinerPeer) this.origin).getAddress();
 
         Blockchain blockchain = Blockchain.getInstance();
         Block lastBlock = blockchain.getLastBlock();
