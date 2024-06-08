@@ -3,6 +3,7 @@ package com.test.controllers;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import com.google.gson.internal.LinkedTreeMap;
 import com.test.blockchain.Blockchain;
 import com.test.dto.Block;
 import com.test.dto.Transaction;
@@ -35,9 +36,9 @@ public class AddBlockController extends Controller {
         );
         
         try {
-            ArrayList<HashMap<String, Object>> maps = (ArrayList<HashMap<String, Object>>) data.get("transactions");
+            ArrayList<LinkedTreeMap<String, Object>> maps = (ArrayList<LinkedTreeMap<String, Object>>) data.get("transactions");
 
-            for (HashMap<String, Object> map: maps) {
+            for (LinkedTreeMap<String, Object> map: maps) {
                 Transaction transaction = new Transaction(
                     (String) map.get("from"),
                     (String) map.get("to"),

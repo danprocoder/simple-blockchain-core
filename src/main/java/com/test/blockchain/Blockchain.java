@@ -106,7 +106,7 @@ public class Blockchain {
 
         ArrayList<Transaction> transactions = this.getTransactionsForAddress(address);
         if (transactions.isEmpty()) {
-            throw new Exception("No transaction found for address");
+            throw new Exception("Address not found");
         }
 
         for (Transaction trx: transactions) {
