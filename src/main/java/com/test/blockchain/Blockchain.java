@@ -14,6 +14,7 @@ import com.google.gson.internal.LinkedTreeMap;
 import com.test.core.Coin;
 import com.test.dto.Block;
 import com.test.dto.Transaction;
+import com.test.network.RequestException;
 
 public class Blockchain {
     ArrayList<Block> chain = new ArrayList<Block>();
@@ -73,14 +74,45 @@ public class Blockchain {
         ArrayList<Transaction> transactionList = new ArrayList<Transaction>();
 
         for (Block block: this.chain) {
-            for (Transaction transaction: block.getTransactions()) {
-                if (transaction.getFromAddress().equals(address) || transaction.getToAddress().equals(address)) {
-                    transactionList.add(transaction);
+            for (Transaction trx: block.getTransactions()) {
+                if (trx.getFromAddress().equals(address) || trx.getToAddress().equals(address)) {
+                    transactionList.add(trx);
                 }
             }
         }
 
         return transactionList;
+    }
+
+    public Transaction findTransactionByHash(String hash) {
+        for (Block blk: this.chain) {
+            for (Transaction t: blk.getTransactions()) {
+                if (t.getHash().equals(hash)) {
+                    return t;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public double getBalanceForAddress(String address) throws Exception {
+        double balance = 0;
+
+        ArrayList<Transaction> transactions = this.getTransactionsForAddress(address);
+        if (transactions.isEmpty()) {
+            throw new Exception("No transaction found for address");
+        }
+
+        for (Transaction trx: transactions) {
+            if (trx.getFromAddress().equals(address)) {
+                balance -= trx.getAmount();
+            } else if (trx.getToAddress().equals(address)) {
+                balance += trx.getAmount();
+            }
+        }
+
+        return balance;
     }
 
     public double getTotalInCirculation() {

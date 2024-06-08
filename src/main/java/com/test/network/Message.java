@@ -96,8 +96,6 @@ public class Message {
     }
 
     public HashMap<String, Object> getJsonBody() {
-        System.out.println("Parsing: " + this.body);
-
         Type type = new TypeToken<HashMap<String, Object>>(){}.getType();
         return new Gson().fromJson(this.body, type);
     }
