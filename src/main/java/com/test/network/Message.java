@@ -52,7 +52,7 @@ public class Message {
 
         StringBuilder sb = new StringBuilder();
         for (int i = 1; i < segments.length; i++) {
-            sb.append(segments[i]).append("\\r?\\n\\r?\\n");
+            sb.append(segments[i]).append("\r\n\r\n");
         }
         message.setBody(sb.toString());
 
@@ -96,6 +96,8 @@ public class Message {
     }
 
     public HashMap<String, Object> getJsonBody() {
+        System.out.println("Parsing: " + this.body);
+
         Type type = new TypeToken<HashMap<String, Object>>(){}.getType();
         return new Gson().fromJson(this.body, type);
     }

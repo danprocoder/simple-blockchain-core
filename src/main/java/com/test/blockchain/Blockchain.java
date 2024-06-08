@@ -2,6 +2,7 @@ package com.test.blockchain;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -111,9 +112,44 @@ public class Blockchain {
         return genesis;
     }
 
-    public boolean readFromFile() {
+    public JsonArray toJsonArray(boolean expand) {
+        JsonArray blockchainJson = new JsonArray();
+
+        for (Block block: this.chain) {
+            JsonObject blockJson = new JsonObject();
+
+            blockJson.addProperty("previousHash", block.getPreviousHash());
+            blockJson.addProperty("hash", block.getHash());
+            blockJson.addProperty("nonce", block.getNonce());
+            blockJson.addProperty("timestamp", block.getTimestamp());
+
+            JsonArray trxJsonArray = new JsonArray();
+            for (Transaction trx: block.getTransactions()) {
+                if (expand) {
+                    JsonObject trxObject = new JsonObject();
+                    trxObject.addProperty("from", trx.getFromAddress());
+                    trxObject.addProperty("to", trx.getToAddress());
+                    trxObject.addProperty("amount", trx.getAmount());
+                    trxObject.addProperty("timestamp", trx.getTimestamp());
+                    trxObject.addProperty("signature", trx.getSignature());
+                    trxObject.addProperty("hash", trx.getHash());
+    
+                    trxJsonArray.add(trxObject);
+                } else {
+                    trxJsonArray.add(trx.getHash());
+                }
+            }
+            blockJson.add("transactions", trxJsonArray);
+
+            blockchainJson.add(blockJson);
+        }
+
+        return blockchainJson;
+    }
+
+    private boolean readFromFile() {
         try {
-            byte[] bytes = Files.readAllBytes(Paths.get("C:/Users/Daniel/.coin.json"));
+            byte[] bytes = Files.readAllBytes(this.getFilePath());
             String content = new String(bytes);
 
             Gson gson = new Gson();
@@ -155,44 +191,15 @@ public class Blockchain {
     public void saveToFile() {
         try {
             JsonArray array = this.toJsonArray(true);
-            Files.write(Paths.get("C:/Users/Daniel/.coin.json"), new Gson().toJson(array).getBytes());
+            Files.write(this.getFilePath(), new Gson().toJson(array).getBytes());
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public JsonArray toJsonArray(boolean expand) {
-        JsonArray blockchainJson = new JsonArray();
+    private Path getFilePath() {
+        String userHome = System.getProperty("user.home");
 
-        for (Block block: this.chain) {
-            JsonObject blockJson = new JsonObject();
-
-            blockJson.addProperty("previousHash", block.getPreviousHash());
-            blockJson.addProperty("hash", block.getHash());
-            blockJson.addProperty("nonce", block.getNonce());
-            blockJson.addProperty("timestamp", block.getTimestamp());
-
-            JsonArray trxJsonArray = new JsonArray();
-            for (Transaction trx: block.getTransactions()) {
-                if (expand) {
-                    JsonObject trxObject = new JsonObject();
-                    trxObject.addProperty("from", trx.getFromAddress());
-                    trxObject.addProperty("to", trx.getToAddress());
-                    trxObject.addProperty("amount", trx.getAmount());
-                    trxObject.addProperty("timestamp", trx.getTimestamp());
-                    trxObject.addProperty("signature", trx.getSignature());
-                    trxObject.addProperty("hash", trx.getHash());
-    
-                    trxJsonArray.add(trxObject);
-                } else {
-                    trxJsonArray.add(trx.getHash());
-                }
-            }
-            blockJson.add("transactions", trxJsonArray);
-
-            blockchainJson.add(blockJson);
-        }
-
-        return blockchainJson;
+        return Paths.get(userHome, ".coin", "blk.json");
     }
 }
