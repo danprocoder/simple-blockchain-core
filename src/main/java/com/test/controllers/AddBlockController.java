@@ -137,16 +137,7 @@ public class AddBlockController extends Controller {
 
     private void addToLocalBlockchain(Block block) {
         Blockchain blockchain = Blockchain.getInstance();
-        Block lastBlock = blockchain.getLastBlock();
-        if (lastBlock == null || lastBlock.getHash().equals(block.getPreviousHash())) {
-            blockchain.addBlock(block);
-            System.out.println("Added to blockchain: " + block.getHash());
-        } else {
-            // Add to orphan block to be rearranged later.
-            blockchain.addOrphanBlock(block);
-        }
-
-        // Update blockchain file
-        blockchain.saveToFile();
+        blockchain.addBlock(block);
+        System.out.println("Added to blockchain: " + block.getHash());
     }
 }

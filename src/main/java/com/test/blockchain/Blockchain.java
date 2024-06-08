@@ -14,7 +14,7 @@ import com.google.gson.internal.LinkedTreeMap;
 import com.test.core.Coin;
 import com.test.dto.Block;
 import com.test.dto.Transaction;
-import com.test.network.RequestException;
+
 
 public class Blockchain {
     ArrayList<Block> chain = new ArrayList<Block>();
@@ -48,11 +48,16 @@ public class Blockchain {
     }
 
     public void addBlock(Block block) {
-        this.chain.add(block);
-    }
+        Block lastBlock = this.getLastBlock();
+        if (lastBlock == null || lastBlock.getHash().equals(block.getPreviousHash())) {
+            this.chain.add(block);
+        } else {
+            // Add to orphan block to be rearranged later.
+            this.orphanBlocks.add(block);
+        }
 
-    public void addOrphanBlock(Block block) {
-        this.orphanBlocks.add(block);
+        // Update blockchain file
+        this.saveToFile();
     }
 
     public Block getLastBlock() {

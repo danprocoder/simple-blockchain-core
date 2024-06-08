@@ -27,8 +27,6 @@ public class Peer extends Thread {
 
     public void initiateHandshake() throws Exception {
         if (this.isWebSocket()) {
-            System.out.println("Performaing handshake");
-
             byte[] acceptKeyBytes = this.context.getHeader("Sec-WebSocket-Key")
                 .concat("258EAFA5-E914-47DA-95CA-C5AB0DC85B11")
                 .getBytes();
