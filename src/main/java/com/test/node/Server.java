@@ -1,148 +1,68 @@
 package com.test.node;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.test.blockchain.Blockchain;
-import com.test.dto.Block;
-import com.test.dto.Transaction;
-import com.test.peer.MinerPeer;
-import com.test.peer.NodePeer;
-import com.test.peer.Peer;
-import com.test.peer.PeerFactory;
+import com.test.controllers.AddBlockController;
+import com.test.controllers.GetAddressBalanceController;
+import com.test.controllers.GetAddressTransactions;
+import com.test.controllers.GetBlockChainController;
+import com.test.controllers.SendTransactionController;
+import com.test.network.ConnectionManager;
+import com.test.network.Peer;
+import com.test.network.RequestHandler;
 
-public class Server implements ServerListener {
+public class Server {
     private static Server instance;
 
     private ServerSocket socketServer;
 
-    /** Connected peers. */
-    ArrayList<Peer> connectedPeers = new ArrayList<Peer>();
-
     public static Server getInstance() {
         if (instance == null) {
             instance = new Server();
+            instance.setupEventHandlers();
         }
 
         return instance;
     }
 
+    /**
+     * Starts the server and listens for connections.
+     *
+     * @param port
+     * @throws IOException
+     */
     public void listenForConnections(int port) throws IOException {
+        // Start server
         this.socketServer = new ServerSocket(port);
         System.out.println("Node started on port " + port);
+        System.out.println("Listening for connections...");
 
         while (true) {
             Socket client = this.socketServer.accept();
 
-            // Handshake to workout if it's a wallet or miner.
-            ConnectionHeader header = this.getHeaders(client);
-
             try {
-                Peer peer = PeerFactory.getPeer(client, header, instance);
+                Peer peer = new Peer(client);
+                peer.initiateHandshake();
+
                 peer.start();
-                this.connectedPeers.add(peer);
+                ConnectionManager.getInstance().addPeer(peer);
                 
-                System.out.println(header.getClientType() + " connected");
+                System.out.println(peer.getContext().getClientType() + " connected");
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
     }
 
-    private ConnectionHeader getHeaders(Socket client) throws IOException {
-        // Handshake to workout if it's a wallet or miner.
-        BufferedReader reader = new BufferedReader(new InputStreamReader(client.getInputStream()));
-
-        String firstLine = reader.readLine();
-
-        Map<String, String> headerMap = new HashMap<String, String>();
-        String line;
-        while ((line = reader.readLine()) != null && !line.isEmpty()) {
-            String[] header = line.split(":");
-
-            headerMap.put(header[0].trim(), header[1].trim());
-        }
-
-        return new ConnectionHeader(firstLine, headerMap);
-    }
-
-    @Override()
-    public void onTransactionReceived(Transaction trx, Peer peer, String rawMessage) {
-        try {
-            if (!trx.verifySignature()) {
-                peer.sendData("422 Failed to verify signature");
-                return;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
-        }
-
-        for (Peer connected: this.connectedPeers) {
-            if (!(connected instanceof MinerPeer)) {
-                continue;
-            }
-
-            try {
-                connected.sendData(rawMessage);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    @Override()
-    public void onBlockReceived(Block block, Peer peer, String rawMessage) {
-        // Broadcast to other nodes on the network
-        for (Peer connected: this.connectedPeers) {
-            try {
-                if (!(connected instanceof NodePeer)) {
-                    continue;    
-                }
-
-                connected.sendData(rawMessage);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        if (!block.computeHash().equals(block.getHash())) {
-            System.out.println("Block rejected (" + block.getHash() + "): Hash mismatch");
-            return;
-        }
-
-        String minerAddress = ((MinerPeer) peer).getAddress();
-
-        Blockchain blockchain = Blockchain.getInstance();
-        Block lastBlock = blockchain.getLastBlock();
-        if (lastBlock == null || lastBlock.getHash().equals(block.getPreviousHash())) {
-            blockchain.addBlock(block);
-            System.out.println("Added to blockchain: " + block.getHash());
-        } else {
-            // Add to orphan block to be rearranged later.
-            blockchain.addOrphanBlock(block);
-        }
-
-        try {
-            JsonArray array = Blockchain.getInstance().toJsonArray();
-            Files.write(Paths.get("output.json"), new Gson().toJson(array).getBytes());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override()
-    public JsonArray onRequestBlockchain() {
-        return Blockchain.getInstance().toJsonArray();
+    private void setupEventHandlers() {
+        // Setup router
+        RequestHandler requestHandler = RequestHandler.getInstance();
+        requestHandler.assign("add-block", new AddBlockController());
+        requestHandler.assign("send-transaction", new SendTransactionController());
+        requestHandler.assign("get-blockchain", new GetBlockChainController());
+        requestHandler.assign("get-balance-for-address", new GetAddressBalanceController());
+        requestHandler.assign("get-transactions-for-address", new GetAddressTransactions());
     }
 }

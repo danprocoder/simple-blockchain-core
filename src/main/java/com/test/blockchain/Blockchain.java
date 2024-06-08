@@ -1,9 +1,16 @@
 package com.test.blockchain;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.internal.LinkedTreeMap;
+import com.test.core.Coin;
 import com.test.dto.Block;
 import com.test.dto.Transaction;
 
@@ -19,6 +26,23 @@ public class Blockchain {
         }
 
         return instance;
+    }
+
+    /**
+     * Load blockchain record from file on machine. If the file does not exists, we create one
+     * with the genesis block.
+     */
+    public void initialize() {
+        if (!instance.readFromFile()) {
+            try {
+                Block genesis = instance.getGenesisBlock();
+                instance.chain.add(genesis);
+
+                instance.saveToFile();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void addBlock(Block block) {
@@ -38,10 +62,24 @@ public class Blockchain {
         return null;
     }
 
-    public double getAddressBalance(String address) {
-        double balance = 0;
+    /**
+     * Returns all the transaction made to/from the provided address on the stored blockchain.
+     *
+     * @param address the address to check
+     * @return ArrayList a list transactions
+     */
+    public ArrayList<Transaction> getTransactionsForAddress(String address) {
+        ArrayList<Transaction> transactionList = new ArrayList<Transaction>();
 
-        return balance;
+        for (Block block: this.chain) {
+            for (Transaction transaction: block.getTransactions()) {
+                if (transaction.getFromAddress().equals(address) || transaction.getToAddress().equals(address)) {
+                    transactionList.add(transaction);
+                }
+            }
+        }
+
+        return transactionList;
     }
 
     public double getTotalInCirculation() {
@@ -50,7 +88,80 @@ public class Blockchain {
         return total;
     }
 
-    public JsonArray toJsonArray() {
+    /**
+     * Creates the genesis block for the coin.
+     *
+     * @return
+     * @throws Exception
+     */
+    private Block getGenesisBlock() throws Exception {
+        ArrayList<Transaction> transactionList = new ArrayList<Transaction>();
+
+        Transaction trx = new Transaction(
+            "",
+            Coin.GENESIS_WALLET_ADDRESS,
+            5000,
+            1717779330000L,
+            ""
+        );
+        transactionList.add(trx);
+
+        Block genesis = new Block("", 1, 1234565454, transactionList);
+
+        return genesis;
+    }
+
+    public boolean readFromFile() {
+        try {
+            byte[] bytes = Files.readAllBytes(Paths.get("C:/Users/Daniel/.coin.json"));
+            String content = new String(bytes);
+
+            Gson gson = new Gson();
+            List<LinkedTreeMap<String, Object>> list = gson.fromJson(content, ArrayList.class);
+            for (LinkedTreeMap<String, Object> item: list) {
+                ArrayList<Transaction> transactions = new ArrayList<Transaction>();
+
+                Block blk = new Block(
+                    (String) item.get("previousHash"),
+                    (String) item.get("hash"),
+                    ((Double) item.get("nonce")).intValue(),
+                    ((Double) item.get("timestamp")).longValue(),
+                    transactions
+                );
+
+                List<LinkedTreeMap<String, Object>> trxList = (List<LinkedTreeMap<String, Object>>) item.get("transactions");
+                for (LinkedTreeMap<String, Object> trxObject: trxList) {
+                    Transaction trx = new Transaction(
+                        (String) trxObject.get("from"),
+                        (String) trxObject.get("to"),
+                        (Double) trxObject.get("amount"),
+                        ((Double) trxObject.get("timestamp")).longValue(),
+                        (String) trxObject.get("signature")
+                    );
+
+                    transactions.add(trx);
+                }
+
+                this.chain.add(blk);
+            }
+
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public void saveToFile() {
+        try {
+            JsonArray array = this.toJsonArray(true);
+            Files.write(Paths.get("C:/Users/Daniel/.coin.json"), new Gson().toJson(array).getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public JsonArray toJsonArray(boolean expand) {
         JsonArray blockchainJson = new JsonArray();
 
         for (Block block: this.chain) {
@@ -61,25 +172,27 @@ public class Blockchain {
             blockJson.addProperty("nonce", block.getNonce());
             blockJson.addProperty("timestamp", block.getTimestamp());
 
-            JsonArray transactions = new JsonArray();
+            JsonArray trxJsonArray = new JsonArray();
             for (Transaction trx: block.getTransactions()) {
-                JsonObject trxObject = new JsonObject();
-                trxObject.addProperty("from", trx.getFromAddress());
-                trxObject.addProperty("to", trx.getToAddress());
-                trxObject.addProperty("amount", trx.getAmount());
-                trxObject.addProperty("timestamp", trx.getTimestamp());
-
-                transactions.add(trxObject);
+                if (expand) {
+                    JsonObject trxObject = new JsonObject();
+                    trxObject.addProperty("from", trx.getFromAddress());
+                    trxObject.addProperty("to", trx.getToAddress());
+                    trxObject.addProperty("amount", trx.getAmount());
+                    trxObject.addProperty("timestamp", trx.getTimestamp());
+                    trxObject.addProperty("signature", trx.getSignature());
+                    trxObject.addProperty("hash", trx.getHash());
+    
+                    trxJsonArray.add(trxObject);
+                } else {
+                    trxJsonArray.add(trx.getHash());
+                }
             }
-            blockJson.add("transactions", transactions);
+            blockJson.add("transactions", trxJsonArray);
 
             blockchainJson.add(blockJson);
         }
 
         return blockchainJson;
-    }
-
-    public void saveToFile() {
-
     }
 }

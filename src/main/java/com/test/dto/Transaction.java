@@ -6,23 +6,30 @@ import java.security.Signature;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.test.helper.SecurityHelper;
+
 public class Transaction {
     private String from;
 
     private String to;
 
-    private Double amount;
+    private double amount;
 
     private long timestamp;
 
     private String signature;
 
-    public Transaction(String from, String to, Double amount, long timestamp, String signature) {
+    private String hash;
+
+    public Transaction(String from, String to, double amount, long timestamp, String signature) throws Exception {
         this.from = from;
         this.to = to;
         this.amount = amount;
         this.timestamp = timestamp;
         this.signature = signature;
+        this.hash = this.computeHash();
     }
 
     public String getFromAddress() {
@@ -33,7 +40,7 @@ public class Transaction {
         return this.to;
     }
 
-    public Double getAmount() {
+    public double getAmount() {
         return this.amount;
     }
 
@@ -41,26 +48,53 @@ public class Transaction {
         return this.timestamp;
     }
 
-    public boolean verifySignature() {
+    public String getHash() {
+        return this.hash;
+    }
+
+    public String getSignature() {
+        return this.signature;
+    }
+
+    public boolean verifySignature(String key) {
         try {
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
     
-            byte[] publicKeyBytes = Base64.getDecoder().decode(this.from);
+            byte[] publicKeyBytes = Base64.getDecoder().decode(key);
     
-            PublicKey publicKey = keyFactory.generatePublic(
-                new X509EncodedKeySpec(publicKeyBytes)
-            );
+            X509EncodedKeySpec keySpec = new X509EncodedKeySpec(publicKeyBytes);
+            PublicKey publicKey = keyFactory.generatePublic(keySpec);
     
             Signature verifier = Signature.getInstance("SHA256withRSA");
             verifier.initVerify(publicKey);
-
-            String data = "Trx{from=" + this.from + ", to=" + this.to + ", amount=" + this.amount + ", timestamp=" + this.timestamp + "}";
-            verifier.update(data.getBytes());
+            verifier.update(this.toString().getBytes());
 
             return verifier.verify(Base64.getDecoder().decode(this.signature));
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public String computeHash() throws Exception {
+        return SecurityHelper.hashSHA256(this.toString());
+    }
+
+    public String toJson() {
+        JsonObject json = new JsonObject();
+
+        json.addProperty("from", this.from);
+        json.addProperty("to", this.to);
+        json.addProperty("amount", this.amount);
+        json.addProperty("timestamp", this.timestamp);
+        json.addProperty("signature", this.signature);
+        json.addProperty("hash", this.hash);
+
+        return new Gson().toJson(json);
+    }
+
+    @Override()
+    public String toString() {
+        return "Trx{from=" + this.from + ", to=" + this.to + ", amount=" + this.amount + ", timestamp=" + this.timestamp + "}";
     }
 }
