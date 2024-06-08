@@ -181,11 +181,15 @@ public class Blockchain {
 
     private boolean readFromFile() {
         try {
-            byte[] bytes = Files.readAllBytes(this.getFilePath());
+            byte[] bytes = Files.readAllBytes(this.getFilePath("blockchain"));
             String content = new String(bytes);
 
             Gson gson = new Gson();
             List<LinkedTreeMap<String, Object>> list = gson.fromJson(content, ArrayList.class);
+            if (list == null) {
+                return false;
+            }
+
             for (LinkedTreeMap<String, Object> item: list) {
                 ArrayList<Transaction> transactions = new ArrayList<Transaction>();
 
@@ -223,15 +227,26 @@ public class Blockchain {
     public void saveToFile() {
         try {
             JsonArray array = this.toJsonArray(true);
-            Files.write(this.getFilePath(), new Gson().toJson(array).getBytes());
+            byte[] content = new Gson().toJson(array).getBytes();
+            Files.write(this.getFilePath("blockchain"), content);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private Path getFilePath() {
+    private Path getFilePath(String filename) throws IOException {
         String userHome = System.getProperty("user.home");
 
-        return Paths.get(userHome, ".coin", "blk.json");
+        Path path = Paths.get(userHome, ".coin");
+        if (!Files.exists(path)) {
+            Files.createDirectories(path);
+        }
+
+        Path file = path.resolve(filename);
+        if (!Files.exists(file)) {
+            Files.createFile(file);
+        }
+
+        return file;
     }
 }
