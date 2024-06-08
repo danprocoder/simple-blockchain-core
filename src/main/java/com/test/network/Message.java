@@ -1,8 +1,12 @@
 package com.test.network;
 
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 public class Message {
     /**
@@ -28,15 +32,38 @@ public class Message {
 
     public Message(String event, String contentType) {
         header.put("event", event);
+        header.put("message-id", UUID.randomUUID().toString());
         header.put("content-type", contentType);
     }
 
-    public static Message fromText(String string) {
-        return new Message("test-event");
+    public Message() {}
+
+    public static Message fromText(String str) {
+        String[] sections = str.split("\r\n\r\n");
+
+        Message message = new Message();
+
+        // Grab the headers and save them.
+        for (String header: sections) {
+            String[] headerSections = header.split(":");
+            message.addHeader(headerSections[0].trim().toLowerCase(), headerSections[1].trim());
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (int i = 1; i < sections.length; i++) {
+            sb.append(sections[i]).append("\r\n\r\n");
+        }
+        message.setBody(sb.toString());
+
+        return message;
     }
 
-    public void setMessageId(String messageId) {
+    public void setId(String messageId) {
         this.header.put("message-id", messageId);
+    }
+
+    public String getId() {
+        return this.header.get("message-id");
     }
 
     public void addHeader(String key, String value) {
@@ -45,6 +72,10 @@ public class Message {
 
     public void addHeader(String key, int value) {
         this.header.put(key.toLowerCase(), Integer.toString(value));
+    }
+
+    public String getHeader(String key) {
+        return this.header.get(key);
     }
 
     public void setOrigin(Peer peer) {
@@ -61,6 +92,11 @@ public class Message {
 
     public String getBody() {
         return this.body;
+    }
+
+    public HashMap<String, Object> getJsonBody() {
+        Type type = new TypeToken<HashMap<String, Object>>(){}.getType();
+        return new Gson().fromJson(this.body, type);
     }
     
     @Override()

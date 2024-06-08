@@ -26,7 +26,7 @@ public class Block {
         this.transactions = transactions;
     }
 
-    public Block(String previousHash, int nonce, long timestamp, ArrayList<Transaction> transactions) {
+    public Block(String previousHash, int nonce, long timestamp, ArrayList<Transaction> transactions) throws Exception {
         this.previousHash = previousHash;
         this.nonce = nonce;
         this.timestamp = timestamp;
@@ -55,7 +55,7 @@ public class Block {
         return this.transactions;
     }
 
-    public String computeHash() {
+    public String computeHash() throws Exception {
         String data = this.previousHash + this.timestamp;
 
         for (Transaction trx: this.transactions) {

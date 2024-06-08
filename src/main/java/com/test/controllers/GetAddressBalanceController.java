@@ -1,17 +1,16 @@
 package com.test.controllers;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
-import com.google.gson.internal.LinkedTreeMap;
 import com.test.blockchain.Blockchain;
 import com.test.dto.Transaction;
 import com.test.network.Message;
-import com.test.network.Request;
 
 public class GetAddressBalanceController extends Controller {
     @Override()
-    public Message onRequest(Request request) {
-        LinkedTreeMap<String, Object> data = request.getData();
+    public Message onRequest(Message request) {
+        HashMap<String, Object> data = request.getJsonBody();
 
         String address = (String) data.get("address");
 
@@ -28,7 +27,7 @@ public class GetAddressBalanceController extends Controller {
         }
 
         Message response = new Message("get-balance-for-address", "Number");
-        response.setMessageId("same-as-request");
+        response.setId(request.getId());
         response.addHeader("Address", address);
         response.setBody(Double.toString(balance));
         return response;

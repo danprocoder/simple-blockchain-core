@@ -26,11 +26,11 @@ public class ConnectionManager {
      *
      * @param message
      */
-    public void broadcastToMiners(String message) {
+    public void broadcastToMiners(Message message) {
         for (Peer connected: this.connectedPeers) {
             if (connected.isMiner()) {
                 try {
-                    connected.sendData(message.getBytes());
+                    connected.sendData(message);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

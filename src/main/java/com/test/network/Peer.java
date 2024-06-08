@@ -27,6 +27,8 @@ public class Peer extends Thread {
 
     public void initiateHandshake() throws Exception {
         if (this.isWebSocket()) {
+            System.out.println("Performaing handshake");
+
             byte[] acceptKeyBytes = this.context.getHeader("Sec-WebSocket-Key")
                 .concat("258EAFA5-E914-47DA-95CA-C5AB0DC85B11")
                 .getBytes();
@@ -39,7 +41,10 @@ public class Peer extends Thread {
                 + "Connection: Upgrade\r\n"
                 + "Sec-WebSocket-Accept: " + acceptKey + "\r\n\r\n";
 
-            this.sendData(responseHeader.getBytes());
+            // This calls the write() method of dos directly because websocket clients are not expecting
+            // the handshake response to be a framed data.
+            this.dos.write(responseHeader.getBytes());
+            this.dos.flush();
         }
     }
 

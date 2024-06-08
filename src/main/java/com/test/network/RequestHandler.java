@@ -3,8 +3,8 @@ package com.test.network;
 import java.io.IOException;
 import java.util.HashMap;
 
-import com.google.gson.Gson;
 import com.test.controllers.Controller;
+
 
 public class RequestHandler {
     private static RequestHandler instance;
@@ -31,29 +31,34 @@ public class RequestHandler {
      * @param message
      */
     public void resolve(Peer origin, String message) {
-        // Parse data.
-        // TODO: use Message.fromText() instead.
-        // TODO: validate that message id is present.
-        Request request = new Gson().fromJson(message, Request.class);
-        request.setOrigin(origin);
-        request.setRawJson(message);
-        
-        String eventName = request.getAction();
-
         try {
-            Controller controller = this.handlerMap.get(eventName);
-            if (controller == null) {
-                Message response = new Message(eventName, "text/plain");
-                // TODO: set message id to the id of the request.
-                response.setBody("Unknown event: " + eventName);
-                origin.sendData(response);
-
-                return;
-            }
+            try {
+                Message msg = Message.fromText(message);
+        
+                if (msg.getId() == null) {
+                    throw new RequestException("Message ID is required", msg);
+                }
     
-            Message response = controller.onRequest(request);
-            if (response != null) {
-                origin.sendData(response);
+                String eventName = msg.getHeader("event");
+                if (eventName == null) {
+                    throw new RequestException("Event is required", msg);
+                }
+    
+                Controller controller = this.handlerMap.get(eventName);
+                if (controller == null) {
+                    throw new RequestException("Unknown event: " + eventName, msg);
+                }
+    
+                // Set the origin when the necessary validations have passed.
+                msg.setOrigin(origin);
+        
+                Message response = controller.onRequest(msg);
+                if (response != null) {
+                    response.setId(msg.getId());
+                    origin.sendData(response);
+                }
+            } catch (RequestException e) {
+                origin.sendData(e.getMessage().getBytes());
             }
         } catch (IOException e) {
             e.printStackTrace();

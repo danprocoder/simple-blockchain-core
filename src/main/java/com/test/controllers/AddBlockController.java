@@ -1,14 +1,15 @@
 package com.test.controllers;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
-import com.google.gson.internal.LinkedTreeMap;
 import com.test.blockchain.Blockchain;
 import com.test.dto.Block;
 import com.test.dto.Transaction;
 import com.test.network.ConnectionManager;
 import com.test.network.Message;
-import com.test.network.Request;
+import com.test.network.RequestException;
+
 
 /**
  * Handles request from miners to add verify a block and add it to our copy of the blockchain.
@@ -16,16 +17,13 @@ import com.test.network.Request;
 public class AddBlockController extends Controller {
 
     @Override()
-    public Message onRequest(Request request) {
+    public Message onRequest(Message request) throws RequestException {
         // Broadcast to other nodes on the network so that it can be verified by other node too.
-        Message trxMessage = new Message(request.getAction());
-        trxMessage.setBody(request.getRawJson());
-
         ConnectionManager connectionManager = ConnectionManager.getInstance();
-        connectionManager.broadcastToNodes(trxMessage);
+        connectionManager.broadcastToNodes(request);
 
         // Get the block from the request and verify it.
-        LinkedTreeMap<String, Object> data = request.getData();
+        HashMap<String, Object> data = request.getJsonBody();
 
         ArrayList<Transaction> transactions = new ArrayList<Transaction>();
         Block block = new Block(
@@ -37,9 +35,9 @@ public class AddBlockController extends Controller {
         );
         
         try {
-            ArrayList<LinkedTreeMap<String, Object>> maps = (ArrayList<LinkedTreeMap<String, Object>>) data.get("transactions");
+            ArrayList<HashMap<String, Object>> maps = (ArrayList<HashMap<String, Object>>) data.get("transactions");
 
-            for (LinkedTreeMap<String, Object> map: maps) {
+            for (HashMap<String, Object> map: maps) {
                 Transaction transaction = new Transaction(
                     (String) map.get("from"),
                     (String) map.get("to"),
@@ -50,9 +48,9 @@ public class AddBlockController extends Controller {
                 transactions.add(transaction);
             }
         } catch (Exception e) {
-            // Throw back an error message.
             e.printStackTrace();
-            return null;
+
+            throw new RequestException(e.getMessage(), request);
         }
 
         try {
@@ -66,8 +64,9 @@ public class AddBlockController extends Controller {
             response.setBody(block.toJson());
             connectionManager.broadcastToWallets(response);
         } catch (Exception e) {
-            // Throw back an error from here.
             System.out.println("Illegal Block (" + block.getHash() + "): " + e.getMessage());
+
+            throw new RequestException(e.getMessage(), request);
         }
 
         return null;
