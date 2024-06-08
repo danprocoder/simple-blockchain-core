@@ -39,19 +39,20 @@ public class Message {
     public Message() {}
 
     public static Message fromText(String str) {
-        String[] sections = str.split("\r\n\r\n");
+        String[] segments = str.split("\\r?\\n\\r?\\n");
 
         Message message = new Message();
 
         // Grab the headers and save them.
-        for (String header: sections) {
-            String[] headerSections = header.split(":");
-            message.addHeader(headerSections[0].trim().toLowerCase(), headerSections[1].trim());
+        String[] headers = segments[0].split("\\r?\\n");
+        for (String h: headers) {
+            String[] header = h.split(":");
+            message.addHeader(header[0].trim().toLowerCase(), header[1].trim());
         }
 
         StringBuilder sb = new StringBuilder();
-        for (int i = 1; i < sections.length; i++) {
-            sb.append(sections[i]).append("\r\n\r\n");
+        for (int i = 1; i < segments.length; i++) {
+            sb.append(segments[i]).append("\\r?\\n\\r?\\n");
         }
         message.setBody(sb.toString());
 
