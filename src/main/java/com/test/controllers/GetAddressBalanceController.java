@@ -1,7 +1,5 @@
 package com.test.controllers;
 
-import java.util.HashMap;
-
 import com.test.blockchain.Blockchain;
 import com.test.network.Message;
 import com.test.network.RequestException;
@@ -9,9 +7,7 @@ import com.test.network.RequestException;
 public class GetAddressBalanceController extends Controller {
     @Override()
     public Message onRequest(Message request) throws RequestException {
-        HashMap<String, Object> data = request.getJsonBody();
-
-        String address = (String) data.get("address");
+        String address = request.getBody();
 
         Blockchain blockchain = Blockchain.getInstance();
 
