@@ -3,7 +3,6 @@ package com.test.helper;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 
-
 public class SecurityHelper {
     public static String hashSHA256(String input) {
         try {

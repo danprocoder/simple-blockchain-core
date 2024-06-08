@@ -1,15 +1,14 @@
 package com.test.dto;
 
 import java.security.KeyFactory;
-import java.security.MessageDigest;
 import java.security.PublicKey;
 import java.security.Signature;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
-import java.util.Formatter;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.test.helper.SecurityHelper;
 
 public class Transaction {
     private String from;
@@ -78,16 +77,7 @@ public class Transaction {
     }
 
     public String computeHash() throws Exception {
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        byte[] hashBytes = digest.digest(this.toString().getBytes());
-
-        Formatter formatter = new Formatter();
-        for (byte b: hashBytes) formatter.format("%02x", b);
-        String hex = formatter.toString();
-
-        formatter.close();
-        
-        return hex;
+        return SecurityHelper.hashSHA256(this.toString());
     }
 
     public String toJson() {

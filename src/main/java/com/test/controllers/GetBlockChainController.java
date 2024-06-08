@@ -3,24 +3,20 @@ package com.test.controllers;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.test.blockchain.Blockchain;
+import com.test.network.Message;
 import com.test.network.Request;
-import com.test.network.Response;
-import com.test.network.peer.Peer;
 
 /**
  * Controller to handle requests to get all blockchain records.
  */
 public class GetBlockChainController extends Controller {
-    public GetBlockChainController(Peer origin) {
-        super(origin);
-    }
-    
     @Override()
-    public Response onRequest(Request request) {
+    public Message onRequest(Request request) {
         JsonArray blockchain = Blockchain.getInstance().toJsonArray(false);
         String json = new Gson().toJson(blockchain);
 
-        Response response = new Response("get-blockchain");
+        Message response = new Message("get-blockchain");
+        response.setMessageId("same-as-request");
         response.setBody(json);
         return response;
     }

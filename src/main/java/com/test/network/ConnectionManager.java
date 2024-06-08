@@ -3,11 +3,6 @@ package com.test.network;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import com.test.network.peer.MinerPeer;
-import com.test.network.peer.NodePeer;
-import com.test.network.peer.Peer;
-import com.test.network.peer.WebSocketPeer;
-
 public class ConnectionManager {
     private static ConnectionManager instance;
     
@@ -26,21 +21,14 @@ public class ConnectionManager {
         this.connectedPeers.add(peer);
     }
 
+    /**
+     * Send a message to all miners connected on the server.
+     *
+     * @param message
+     */
     public void broadcastToMiners(String message) {
         for (Peer connected: this.connectedPeers) {
-            if (connected instanceof MinerPeer) {
-                try {
-                    connected.sendData(message.getBytes());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-    public void broadcastToNodes(String message) {
-        for (Peer connected: this.connectedPeers) {
-            if (connected instanceof NodePeer) {
+            if (connected.isMiner()) {
                 try {
                     connected.sendData(message.getBytes());
                 } catch (IOException e) {
@@ -51,13 +39,30 @@ public class ConnectionManager {
     }
 
     /**
-     * Send a message to everyone connected via websocket.
+     * Send a message to other node servers we are connected to.
      *
      * @param message
      */
-    public void broadcastToWebSocketClients(Response message) {
+    public void broadcastToNodes(Message message) {
         for (Peer connected: this.connectedPeers) {
-            if (connected instanceof WebSocketPeer) {
+            if (connected.isNode()) {
+                try {
+                    connected.sendData(message);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    /**
+     * Send a message all wallets connected on the server.
+     *
+     * @param message
+     */
+    public void broadcastToWallets(Message message) {
+        for (Peer connected: this.connectedPeers) {
+            if (connected.isWallet()) {
                 try {
                     connected.sendData(message);
                 } catch (IOException e) {

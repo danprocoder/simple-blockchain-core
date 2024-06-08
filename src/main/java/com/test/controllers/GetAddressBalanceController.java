@@ -5,17 +5,12 @@ import java.util.ArrayList;
 import com.google.gson.internal.LinkedTreeMap;
 import com.test.blockchain.Blockchain;
 import com.test.dto.Transaction;
+import com.test.network.Message;
 import com.test.network.Request;
-import com.test.network.Response;
-import com.test.network.peer.Peer;
 
 public class GetAddressBalanceController extends Controller {
-    public GetAddressBalanceController(Peer peer) {
-        super(peer);
-    }
-
     @Override()
-    public Response onRequest(Request request) {
+    public Message onRequest(Request request) {
         LinkedTreeMap<String, Object> data = request.getData();
 
         String address = (String) data.get("address");
@@ -32,7 +27,8 @@ public class GetAddressBalanceController extends Controller {
             }
         }
 
-        Response response = new Response("get-balance-for-address", "Number");
+        Message response = new Message("get-balance-for-address", "Number");
+        response.setMessageId("same-as-request");
         response.addHeader("Address", address);
         response.setBody(Double.toString(balance));
         return response;

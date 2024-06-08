@@ -7,38 +7,27 @@ import com.test.blockchain.Blockchain;
 import com.test.dto.Block;
 import com.test.dto.Transaction;
 import com.test.network.ConnectionManager;
+import com.test.network.Message;
 import com.test.network.Request;
-import com.test.network.Response;
-import com.test.network.peer.Peer;
 
+/**
+ * Handles request from miners to add verify a block and add it to our copy of the blockchain.
+ */
 public class AddBlockController extends Controller {
-    public AddBlockController(Peer origin) {
-        super(origin);
-    }
 
     @Override()
-    public Response onRequest(Request request) {
+    public Message onRequest(Request request) {
+        // Broadcast to other nodes on the network so that it can be verified by other node too.
+        Message trxMessage = new Message(request.getAction());
+        trxMessage.setBody(request.getRawJson());
+
+        ConnectionManager connectionManager = ConnectionManager.getInstance();
+        connectionManager.broadcastToNodes(trxMessage);
+
+        // Get the block from the request and verify it.
         LinkedTreeMap<String, Object> data = request.getData();
 
-        ArrayList<LinkedTreeMap<String, Object>> maps = (ArrayList<LinkedTreeMap<String, Object>>) data.get("transactions");
-
         ArrayList<Transaction> transactions = new ArrayList<Transaction>();
-        try {
-            for (LinkedTreeMap<String, Object> map: maps) {
-                Transaction transaction = new Transaction(
-                    (String) map.get("from"),
-                    (String) map.get("to"),
-                    ((Double) map.get("amount")).doubleValue(),
-                    ((Double) map.get("timestamp")).longValue(),
-                    (String) map.get("signature")
-                );
-                transactions.add(transaction);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-
         Block block = new Block(
             (String) data.get("previousHash"),
             (String) data.get("hash"),
@@ -46,10 +35,25 @@ public class AddBlockController extends Controller {
             ((Double) data.get("timestamp")).longValue(),
             transactions
         );
+        
+        try {
+            ArrayList<LinkedTreeMap<String, Object>> maps = (ArrayList<LinkedTreeMap<String, Object>>) data.get("transactions");
 
-        // Broadcast to other nodes on the network
-        ConnectionManager connectionManager = ConnectionManager.getInstance();
-        connectionManager.broadcastToNodes(request.getRawJson());
+            for (LinkedTreeMap<String, Object> map: maps) {
+                Transaction transaction = new Transaction(
+                    (String) map.get("from"),
+                    (String) map.get("to"),
+                    (Double) map.get("amount"),
+                    ((Double) map.get("timestamp")).longValue(),
+                    (String) map.get("signature")
+                );
+                transactions.add(transaction);
+            }
+        } catch (Exception e) {
+            // Throw back an error message.
+            e.printStackTrace();
+            return null;
+        }
 
         try {
             this.validateBlock(block);
@@ -57,12 +61,12 @@ public class AddBlockController extends Controller {
     
             this.addToLocalBlockchain(block);
 
-            // Broadcast the verified block to wallets so they can alert the user.
-            // TODO: refactor to only send to the wallet that sent the request.
-            Response response = new Response("block-verified");
+            // Once the block is being verified. We sent it to all wallets connected on the network.
+            Message response = new Message("block-verified");
             response.setBody(block.toJson());
-            connectionManager.broadcastToWebSocketClients(response);
+            connectionManager.broadcastToWallets(response);
         } catch (Exception e) {
+            // Throw back an error from here.
             System.out.println("Illegal Block (" + block.getHash() + "): " + e.getMessage());
         }
 
@@ -84,6 +88,13 @@ public class AddBlockController extends Controller {
         return true;
     }
 
+    /**
+     * Validates the transactions from the block.
+     *
+     * @param transactions
+     * @return
+     * @throws Exception
+     */
     private boolean validateTransactions(ArrayList<Transaction> transactions) throws Exception {
         if (transactions.size() < 2) {
             throw new Exception("Block should have at least 2 transactions");
@@ -97,6 +108,8 @@ public class AddBlockController extends Controller {
             if (!trx.verifySignature(trx.getFromAddress())) {
                 throw new Exception("Illegal signature for transaction: " + trx.getHash());
             }
+
+            // TODO: check that the sender has enough money to cover the transaction.
         }
 
         return true;
