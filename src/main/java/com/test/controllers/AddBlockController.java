@@ -101,6 +101,7 @@ public class AddBlockController extends Controller {
 
         this.validateCoinbaseTransaction(transactions.get(0));
 
+        Blockchain blockchain = Blockchain.getInstance();
         for (int i = 1; i < transactions.size(); i++) {
             Transaction trx = transactions.get(i);
 
@@ -108,7 +109,10 @@ public class AddBlockController extends Controller {
                 throw new Exception("Illegal signature for transaction: " + trx.getHash());
             }
 
-            // TODO: check that the sender has enough money to cover the transaction.
+            double balance = blockchain.getBalanceForAddress(trx.getFromAddress());
+            if (balance < trx.getAmount()) {
+                throw new Exception("Not enough funds to carry out transaction");
+            }
         }
 
         return true;

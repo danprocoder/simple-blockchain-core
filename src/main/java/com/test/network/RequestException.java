@@ -26,6 +26,8 @@ public class RequestException extends Exception {
         }
 
         error.addHeader("Content-Type", "text/plain");
+        // TODO: Implement different error codes.
+        error.addHeader("Error-Code", 0);
         error.setBody(super.getMessage());
 
         return error.toString();

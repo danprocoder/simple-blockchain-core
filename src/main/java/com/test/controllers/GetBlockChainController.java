@@ -14,7 +14,7 @@ public class GetBlockChainController extends Controller {
         JsonArray blockchain = Blockchain.getInstance().toJsonArray(false);
         String json = new Gson().toJson(blockchain);
 
-        Message response = new Message("get-blockchain");
+        Message response = new Message(request.getHeader("event"));
         response.setId(request.getId());
         response.setBody(json);
         return response;

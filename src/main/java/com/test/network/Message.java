@@ -52,7 +52,7 @@ public class Message {
 
         StringBuilder sb = new StringBuilder();
         for (int i = 1; i < segments.length; i++) {
-            sb.append(segments[i]).append("\\r?\\n\\r?\\n");
+            sb.append(segments[i]).append("\r\n\r\n");
         }
         message.setBody(sb.toString());
 
