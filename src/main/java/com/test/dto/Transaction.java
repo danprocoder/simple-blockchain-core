@@ -57,6 +57,12 @@ public class Transaction {
         return this.signature;
     }
 
+    /**
+     * Verifies the signature using the public key (from address) sent with the transaction.
+     *
+     * @param key the public key to verify with
+     * @return
+     */
     public boolean verifySignature(String key) {
         try {
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
