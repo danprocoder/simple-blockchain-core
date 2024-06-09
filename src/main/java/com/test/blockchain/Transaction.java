@@ -1,4 +1,4 @@
-package com.test.dto;
+package com.test.blockchain;
 
 import java.security.KeyFactory;
 import java.security.PublicKey;
@@ -7,7 +7,6 @@ import java.security.spec.X509EncodedKeySpec;
 import java.text.DecimalFormat;
 import java.util.Base64;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.test.helper.SecurityHelper;
 
@@ -57,6 +56,10 @@ public class Transaction {
         return this.signature;
     }
 
+    public String computeHash() throws Exception {
+        return SecurityHelper.hashSHA256(this.toString());
+    }
+    
     /**
      * Verifies the signature using the public key (from address) sent with the transaction.
      *
@@ -83,11 +86,7 @@ public class Transaction {
         }
     }
 
-    public String computeHash() throws Exception {
-        return SecurityHelper.hashSHA256(this.toString());
-    }
-
-    public String toJson() {
+    public JsonObject toJson() {
         JsonObject json = new JsonObject();
 
         json.addProperty("from", this.from);
@@ -97,7 +96,7 @@ public class Transaction {
         json.addProperty("signature", this.signature);
         json.addProperty("hash", this.hash);
 
-        return new Gson().toJson(json);
+        return json;
     }
 
     @Override()

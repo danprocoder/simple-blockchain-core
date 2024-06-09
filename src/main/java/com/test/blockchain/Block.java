@@ -1,8 +1,7 @@
-package com.test.dto;
+package com.test.blockchain;
 
 import java.util.ArrayList;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.test.helper.SecurityHelper;
@@ -10,9 +9,9 @@ import com.test.helper.SecurityHelper;
 public class Block {
     final private String previousHash;
 
-    final private String hash;
+    private String hash;
 
-    final private int nonce;
+    private int nonce;
 
     final private long timestamp;
 
@@ -31,7 +30,18 @@ public class Block {
         this.nonce = nonce;
         this.timestamp = timestamp;
         this.transactions = transactions;
+        this.hash = this.computeHash();
+    }
 
+    public Block(String previousHash, long timestamp) throws Exception {
+        this.previousHash = previousHash;
+        this.timestamp = timestamp;
+        this.transactions = new ArrayList<Transaction>();
+        this.hash = this.computeHash();
+    }
+
+    public void addTransaction(Transaction trx) throws Exception {
+        this.transactions.add(trx);
         this.hash = this.computeHash();
     }
 
@@ -39,8 +49,16 @@ public class Block {
         return this.previousHash;
     }
 
+    public void setHash(String hash) {
+        this.hash = hash;
+    }
+
     public String getHash() {
         return this.hash;
+    }
+
+    public void setNonce(int nonce) {
+        this.nonce = nonce;
     }
 
     public int getNonce() {
@@ -67,7 +85,7 @@ public class Block {
         return SecurityHelper.hashSHA256(data);
     }
 
-    public String toJson() {
+    public JsonObject toJson() {
         JsonObject json = new JsonObject();
 
         json.addProperty("previousHash", this.previousHash);
@@ -81,6 +99,6 @@ public class Block {
         }
         json.add("transactions", trxJsonArray);
 
-        return new Gson().toJson(json);
+        return json;
     }
 }

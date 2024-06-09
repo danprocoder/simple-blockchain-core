@@ -47,12 +47,20 @@ public class Message {
         String[] headers = segments[0].split("\\r?\\n");
         for (String h: headers) {
             String[] header = h.split(":");
+            if (header.length < 2) {
+                System.out.println(h);
+                continue;
+            }
             message.addHeader(header[0].trim().toLowerCase(), header[1].trim());
         }
 
         StringBuilder sb = new StringBuilder();
         for (int i = 1; i < segments.length; i++) {
-            sb.append(segments[i]).append("\r\n\r\n");
+            sb.append(segments[i]);
+            
+            if (i < segments.length - 1) {
+                sb.append("\r\n\r\n");
+            }
         }
         message.setBody(sb.toString());
 

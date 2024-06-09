@@ -3,10 +3,11 @@ package com.test.controllers;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
+import com.test.blockchain.Block;
 import com.test.blockchain.Blockchain;
-import com.test.dto.Block;
-import com.test.dto.Transaction;
+import com.test.blockchain.Transaction;
 import com.test.network.ConnectionManager;
 import com.test.network.Message;
 import com.test.network.RequestException;
@@ -62,7 +63,7 @@ public class AddBlockController extends Controller {
 
             // Once the block is being verified. We sent it to all wallets connected on the network.
             Message response = new Message("block-verified");
-            response.setBody(block.toJson());
+            response.setBody(new Gson().toJson(block.toJson()));
             connectionManager.broadcastToWallets(response);
         } catch (Exception e) {
             System.out.println("Illegal Block (" + block.getHash() + "): " + e.getMessage());

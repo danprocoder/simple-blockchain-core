@@ -11,16 +11,17 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.internal.LinkedTreeMap;
-import com.test.core.Coin;
-import com.test.dto.Block;
-import com.test.dto.Transaction;
 
 
 public class Blockchain {
     ArrayList<Block> chain = new ArrayList<Block>();
     ArrayList<Block> orphanBlocks = new ArrayList<Block>();
 
+    int miningDifficulty = 5;
+
     private static Blockchain instance;
+
+    private final String FILENAME = "blockchain";
 
     public static Blockchain getInstance() {
         if (instance == null) {
@@ -126,6 +127,10 @@ public class Blockchain {
         return total;
     }
 
+    public int getMiningDifficulty() {
+        return this.miningDifficulty;
+    }
+
     /**
      * Creates the genesis block for the coin.
      *
@@ -137,7 +142,7 @@ public class Blockchain {
 
         Transaction trx = new Transaction(
             "",
-            Coin.GENESIS_WALLET_ADDRESS,
+            "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANr06tKOATfgwvQyGNqq2faXfJfIg9QfYci9MSQemFvUUTdlMCx6/mW9P04XeoPOj4K+mFK+IJGzBKFBIE4xy9MCAwEAAQ==",
             5000,
             1717779330000L,
             ""
@@ -186,7 +191,7 @@ public class Blockchain {
 
     private boolean readFromFile() {
         try {
-            byte[] bytes = Files.readAllBytes(this.getFilePath("blockchain"));
+            byte[] bytes = Files.readAllBytes(this.getFilePath(this.FILENAME));
             String content = new String(bytes);
 
             Gson gson = new Gson();
@@ -233,7 +238,7 @@ public class Blockchain {
         try {
             JsonArray array = this.toJsonArray(true);
             byte[] content = new Gson().toJson(array).getBytes();
-            Files.write(this.getFilePath("blockchain"), content);
+            Files.write(this.getFilePath(this.FILENAME), content);
         } catch (IOException e) {
             e.printStackTrace();
         }

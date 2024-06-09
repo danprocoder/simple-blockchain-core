@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.test.blockchain.Blockchain;
-import com.test.dto.Transaction;
+import com.test.blockchain.Transaction;
 import com.test.network.Message;
 import com.test.network.RequestException;
 

@@ -3,7 +3,7 @@ package com.test.controllers;
 import java.util.HashMap;
 
 import com.test.blockchain.Blockchain;
-import com.test.dto.Transaction;
+import com.test.blockchain.Transaction;
 import com.test.network.ConnectionManager;
 import com.test.network.Message;
 import com.test.network.RequestException;
