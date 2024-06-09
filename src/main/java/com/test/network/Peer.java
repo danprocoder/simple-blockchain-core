@@ -88,7 +88,7 @@ public class Peer extends Thread {
      */
     private void fetchMessages() {
         try {
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[2048];
             int bytesRead = 0;
             while ((bytesRead = this.socket.getInputStream().read(buffer)) != -1) {
                 String message = this.processBytesRead(buffer, bytesRead);
