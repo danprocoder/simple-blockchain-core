@@ -4,6 +4,7 @@ import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.Signature;
 import java.security.spec.X509EncodedKeySpec;
+import java.text.DecimalFormat;
 import java.util.Base64;
 
 import com.google.gson.Gson;
@@ -95,6 +96,9 @@ public class Transaction {
 
     @Override()
     public String toString() {
-        return "Trx{from=" + this.from + ", to=" + this.to + ", amount=" + this.amount + ", timestamp=" + this.timestamp + "}";
+        // Need to format the amount as converting double to string will not remove the trailing zeros causing the signature verification to fail
+        // in some cases.
+        DecimalFormat formatter = new DecimalFormat("0.#");
+        return "Trx{from=" + this.from + ", to=" + this.to + ", amount=" + formatter.format(this.amount) + ", timestamp=" + this.timestamp + "}";
     }
 }
